@@ -1,0 +1,1508 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>RouteLive Driver</title>
+
+<style>
+
+body {
+
+    font-family: Arial, sans-serif;
+
+    background: #101a36;
+
+    color: white;
+
+    margin: 0;
+
+    padding: 20px;
+
+}
+
+.container {
+
+    max-width: 500px;
+
+    margin: auto;
+
+}
+
+.card {
+
+    background: #1b2748;
+
+    padding: 22px;
+
+    border-radius: 18px;
+
+    margin-top: 20px;
+
+}
+
+h1 {
+
+    margin-bottom: 5px;
+
+}
+
+.subtitle {
+
+    color: #aeb9d4;
+
+}
+
+label {
+
+    display: block;
+
+    margin-top: 20px;
+
+    margin-bottom: 8px;
+
+    color: #aeb9d4;
+
+}
+
+select {
+
+    width: 100%;
+
+    padding: 14px;
+
+    border-radius: 10px;
+
+    border: none;
+
+    font-size: 16px;
+
+}
+
+button {
+
+    width: 100%;
+
+    padding: 15px;
+
+    margin-top: 20px;
+
+    border: none;
+
+    border-radius: 10px;
+
+    background: #2166f3;
+
+    color: white;
+
+    font-size: 16px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+}
+
+button:disabled {
+
+    opacity: 0.6;
+
+    cursor: not-allowed;
+
+}
+
+.end-button {
+
+    background: #e53935;
+
+}
+
+.gps-status {
+
+    margin-top: 20px;
+
+    padding: 15px;
+
+    background: #14203e;
+
+    border-radius: 12px;
+
+}
+
+.coordinates {
+
+    line-height: 1.8;
+
+    color: #d9e1f5;
+
+    margin-top: 10px;
+
+}
+
+.gps-metrics {
+
+    margin-top: 12px;
+
+    padding-top: 12px;
+
+    border-top: 1px solid #334263;
+
+    line-height: 1.9;
+
+}
+
+.gps-metrics strong {
+
+    color: white;
+
+}
+
+.trip-info {
+
+    margin-top: 18px;
+
+    padding: 15px;
+
+    background: #14203e;
+
+    border-radius: 12px;
+
+    line-height: 1.8;
+
+}
+
+.completed {
+
+    color: #4ade80;
+
+    font-weight: bold;
+
+}
+
+.live-update {
+
+    margin-top: 12px;
+
+    padding: 12px;
+
+    background: #102d26;
+
+    border: 1px solid #1f6f59;
+
+    border-radius: 10px;
+
+    color: #8ff0c8;
+
+    line-height: 1.6;
+
+}
+
+.update-indicator {
+
+    display: inline-block;
+
+    width: 9px;
+
+    height: 9px;
+
+    border-radius: 50%;
+
+    background: #4ade80;
+
+    margin-right: 6px;
+
+    animation: pulse 1.5s infinite;
+
+}
+
+@keyframes pulse {
+
+    0% {
+
+        opacity: 1;
+
+        transform: scale(1);
+
+    }
+
+    50% {
+
+        opacity: 0.4;
+
+        transform: scale(0.8);
+
+    }
+
+    100% {
+
+        opacity: 1;
+
+        transform: scale(1);
+
+    }
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>🚍 RouteLive Driver</h1>
+
+<p class="subtitle">
+    Live GPS Control
+</p>
+
+<div class="card">
+
+<label for="bus">
+    Select Bus
+</label>
+
+<select id="bus">
+
+    <option value="">Loading buses...</option>
+
+</select>
+
+<button id="startRideButton">
+    ▶ Start Ride
+</button>
+
+<button
+    id="endRideButton"
+    class="end-button"
+    disabled
+>
+    🏁 End Ride / Mark Arrival
+</button>
+
+<div class="gps-status">
+
+<strong id="status">
+    🔴 GPS not started
+</strong>
+
+<div class="coordinates">
+
+<div>
+
+    🚌 Bus:
+
+    <span id="selectedBus">
+        BUS-101
+    </span>
+
+</div>
+
+<div>
+
+    Latitude:
+
+    <span id="latitude">
+        --
+    </span>
+
+</div>
+
+<div>
+
+    Longitude:
+
+    <span id="longitude">
+        --
+    </span>
+
+</div>
+
+<div>
+
+    Driver:
+
+    <span id="selectedDriver">
+        --
+    </span>
+
+</div>
+
+<div>
+
+    Destination:
+
+    <span id="selectedDestination">
+        --
+    </span>
+
+</div>
+
+</div>
+
+<div class="gps-metrics">
+
+<div>
+
+    📡 GPS Accuracy:
+
+    <strong id="gpsAccuracy">
+        --
+    </strong>
+
+</div>
+
+<div>
+
+    🕐 Last GPS Update:
+
+    <strong id="gpsLastUpdate">
+        --
+    </strong>
+
+</div>
+
+<div>
+
+    🔄 Firebase Update:
+
+    <strong id="firebaseUpdate">
+        --
+    </strong>
+
+</div>
+
+</div>
+
+<div
+    id="liveUpdateBox"
+    class="live-update"
+    style="display: none;"
+>
+
+<span class="update-indicator"></span>
+
+<strong>
+    LIVE LOCATION ACTIVE
+</strong>
+
+<br>
+
+Firebase location updates every
+<strong>5 seconds</strong>.
+
+</div>
+
+</div>
+
+<div class="trip-info">
+
+<div>
+
+    🕐 Start Time:
+
+    <span id="startTime">
+        --
+    </span>
+
+</div>
+
+<div>
+
+    🏁 Arrival Time:
+
+    <span id="arrivalTime">
+        --
+    </span>
+
+</div>
+
+<div>
+
+    ⏱️ Trip Duration:
+
+    <span id="duration">
+        --
+    </span>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+
+<script type="module">
+
+import {
+
+    initializeApp
+
+}
+
+from
+"https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+
+
+import {
+
+    getDatabase,
+
+    ref,
+
+    set,
+
+    update,
+
+    onValue
+
+}
+
+from
+"https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+
+
+/* ================================
+   FIREBASE
+================================ */
+
+const firebaseConfig = {
+
+    apiKey:
+        "AIzaSyDUzH8HCty4VT7dr5Df-GxbdRjSjjuUj6cA",
+
+    authDomain:
+        "routelive-web.firebaseapp.com",
+
+    databaseURL:
+        "https://routelive-web-default-rtdb.firebaseio.com",
+
+    projectId:
+        "routelive-web",
+
+    storageBucket:
+        "routelive-web.firebasestorage.app",
+
+    messagingSenderId:
+        "85996716251",
+
+    appId:
+        "1:85996716251:web:1ba7e5c12502eb9e598cfe"
+
+};
+
+
+const app =
+    initializeApp(firebaseConfig);
+
+
+const database =
+    getDatabase(app);
+
+
+/* ================================
+   LIVE BUS DATA
+================================ */
+
+const busesRef =
+    ref(database, "buses");
+
+let latestBuses = {};
+
+const selectedDriverText =
+    document.getElementById("selectedDriver");
+
+const selectedDestinationText =
+    document.getElementById("selectedDestination");
+
+
+/* ================================
+   LIVE LOCATION SETTINGS
+================================ */
+
+/*
+
+    GPS can produce many updates.
+
+    We only send one Firebase update
+    every 5 seconds.
+
+*/
+
+const LOCATION_UPDATE_INTERVAL =
+    5000;
+
+
+/* ================================
+   VARIABLES
+================================ */
+
+let watchId = null;
+
+let rideStartTime = null;
+
+let currentBusNumber = null;
+
+let selectedDriverId = null;
+let previousSelectedBus = null;
+
+let lastLatitude = null;
+
+let lastLongitude = null;
+
+let lastGpsAccuracy = null;
+
+let lastFirebaseUpdate = 0;
+
+
+/* ================================
+   ELEMENTS
+================================ */
+
+const startRideButton =
+    document.getElementById(
+        "startRideButton"
+    );
+
+
+const endRideButton =
+    document.getElementById(
+        "endRideButton"
+    );
+
+
+const busSelect =
+    document.getElementById(
+        "bus"
+    );
+
+
+const statusText =
+    document.getElementById(
+        "status"
+    );
+
+
+const latitudeText =
+    document.getElementById(
+        "latitude"
+    );
+
+
+const longitudeText =
+    document.getElementById(
+        "longitude"
+    );
+
+
+const selectedBusText =
+    document.getElementById(
+        "selectedBus"
+    );
+
+
+const startTimeText =
+    document.getElementById(
+        "startTime"
+    );
+
+
+const arrivalTimeText =
+    document.getElementById(
+        "arrivalTime"
+    );
+
+
+const durationText =
+    document.getElementById(
+        "duration"
+    );
+
+
+const gpsAccuracyText =
+    document.getElementById(
+        "gpsAccuracy"
+    );
+
+
+const gpsLastUpdateText =
+    document.getElementById(
+        "gpsLastUpdate"
+    );
+
+
+const firebaseUpdateText =
+    document.getElementById(
+        "firebaseUpdate"
+    );
+
+
+const liveUpdateBox =
+    document.getElementById(
+        "liveUpdateBox"
+    );
+
+
+/* ================================
+   LIVE BUS LIST
+================================ */
+
+onValue(
+    busesRef,
+    (snapshot) => {
+
+        latestBuses = snapshot.val() || {};
+
+        const previous = busSelect.value;
+
+        busSelect.innerHTML =
+            '<option value="">Select your bus</option>';
+
+        Object.entries(latestBuses).forEach(
+            ([busNumber, bus]) => {
+
+                if (!bus) return;
+
+                const option = document.createElement("option");
+                option.value = busNumber;
+                option.textContent =
+                    busNumber +
+                    " • " +
+                    (bus.destination || "No destination") +
+                    " • " +
+                    (bus.driverName || "No driver");
+
+                busSelect.appendChild(option);
+            }
+        );
+
+        if (previous && latestBuses[previous]) {
+            busSelect.value = previous;
+        }
+
+        updateSelectedBusDetails();
+    }
+);
+
+
+function updateSelectedBusDetails() {
+
+    const busNumber = busSelect.value;
+    const bus = latestBuses[busNumber];
+
+    if (!bus) {
+        selectedDriverText.innerText = "--";
+        selectedDestinationText.innerText = "--";
+        selectedBusText.innerText = busNumber || "--";
+        return;
+    }
+
+    selectedBusText.innerText = busNumber;
+    selectedDriverText.innerText =
+        bus.driverName || "No Driver";
+    selectedDestinationText.innerText =
+        bus.destination || "No Destination";
+}
+
+
+/* ================================
+   BUS SELECTION
+================================ */
+
+busSelect.addEventListener(
+
+    "change",
+
+    async function() {
+
+        updateSelectedBusDetails();
+
+        const busNumber = busSelect.value;
+        const bus = latestBuses[busNumber];
+
+        if (!bus || !bus.driverId) {
+            selectedDriverId = null;
+            previousSelectedBus = busNumber || null;
+            return;
+        }
+
+        selectedDriverId = bus.driverId;
+
+        try {
+            // Keep the driver's canonical record synchronized with the
+            // bus selected on the Driver page.
+            await update(
+                ref(database, "drivers/" + selectedDriverId),
+                {
+                    assignedBus: busNumber,
+                    currentBus: busNumber,
+                    destination: bus.destination || "",
+                    driverName: bus.driverName || "",
+                    driverPhone: bus.driverPhone || "",
+                    sessionStatus: "SELECTED",
+                    updatedAt: Date.now()
+                }
+            );
+
+            // If the same driver had another bus selected earlier, clear it.
+            if (
+                previousSelectedBus &&
+                previousSelectedBus !== busNumber &&
+                latestBuses[previousSelectedBus] &&
+                latestBuses[previousSelectedBus].driverId === selectedDriverId
+            ) {
+                await update(
+                    ref(database, "buses/" + previousSelectedBus),
+                    {
+                        sessionStatus: "IDLE",
+                        updatedAt: Date.now()
+                    }
+                );
+            }
+
+            previousSelectedBus = busNumber;
+
+        } catch (error) {
+            console.error("Driver selection sync error:", error);
+        }
+    }
+
+);
+
+
+/* ================================
+   BUTTONS
+================================ */
+
+startRideButton.addEventListener(
+    "click",
+    startRide
+);
+
+
+endRideButton.addEventListener(
+    "click",
+    endRide
+);
+
+
+/* ================================
+   START RIDE
+================================ */
+
+function startRide() {
+
+    if (!navigator.geolocation) {
+
+        statusText.innerText =
+            "❌ GPS is not supported.";
+
+        return;
+
+    }
+
+
+    if (watchId !== null) {
+
+        return;
+
+    }
+
+
+    currentBusNumber =
+        busSelect.value;
+
+    if (!currentBusNumber || !latestBuses[currentBusNumber]) {
+        statusText.innerText =
+            "❌ Select a valid bus first.";
+        return;
+    }
+
+
+    rideStartTime =
+        Date.now();
+
+
+    lastLatitude =
+        null;
+
+
+    lastLongitude =
+        null;
+
+
+    lastGpsAccuracy =
+        null;
+
+
+    lastFirebaseUpdate =
+        0;
+
+
+    statusText.innerText =
+        "🟡 Requesting GPS permission...";
+
+
+    gpsAccuracyText.innerText =
+        "--";
+
+
+    gpsLastUpdateText.innerText =
+        "--";
+
+
+    firebaseUpdateText.innerText =
+        "Waiting...";
+
+
+    liveUpdateBox.style.display =
+        "block";
+
+
+    startRideButton.innerText =
+        "🟢 Ride Running";
+
+
+    startRideButton.disabled =
+        true;
+
+
+    busSelect.disabled =
+        true;
+
+
+    endRideButton.disabled =
+        false;
+
+
+    startTimeText.innerText =
+
+        new Date(
+            rideStartTime
+        ).toLocaleTimeString();
+
+
+    arrivalTimeText.innerText =
+        "--";
+
+
+    durationText.innerText =
+        "--";
+
+
+    /*
+        Start continuous GPS watching.
+    */
+
+    watchId =
+        navigator.geolocation.watchPosition(
+
+            handleGpsPosition,
+
+            handleGpsError,
+
+            {
+
+                enableHighAccuracy:
+                    true,
+
+                maximumAge:
+                    2000,
+
+                timeout:
+                    10000
+
+            }
+
+        );
+
+}
+
+
+/* ================================
+   GPS SUCCESS
+================================ */
+
+async function handleGpsPosition(
+    position
+) {
+
+    const latitude =
+        position.coords.latitude;
+
+
+    const longitude =
+        position.coords.longitude;
+
+
+    const accuracy =
+        position.coords.accuracy;
+
+
+    lastLatitude =
+        latitude;
+
+
+    lastLongitude =
+        longitude;
+
+
+    lastGpsAccuracy =
+        accuracy;
+
+
+    /*
+        Update the driver's screen
+        immediately whenever GPS
+        provides a new position.
+    */
+
+    statusText.innerText =
+        "🟢 GPS LIVE";
+
+
+    statusText.className =
+        "";
+
+
+    latitudeText.innerText =
+        latitude.toFixed(6);
+
+
+    longitudeText.innerText =
+        longitude.toFixed(6);
+
+
+    gpsAccuracyText.innerText =
+        Math.round(accuracy) +
+        " meters";
+
+
+    gpsLastUpdateText.innerText =
+        new Date().toLocaleTimeString();
+
+
+    /*
+        IMPORTANT:
+
+        Don't write every GPS callback
+        to Firebase.
+
+        Only write once every 5 seconds.
+    */
+
+    const now =
+        Date.now();
+
+
+    if (
+        now - lastFirebaseUpdate <
+        LOCATION_UPDATE_INTERVAL
+    ) {
+
+        return;
+
+    }
+
+
+    /*
+        Prevent Firebase updates if
+        the ride was already stopped.
+    */
+
+    if (
+        currentBusNumber === null ||
+        rideStartTime === null
+    ) {
+
+        return;
+
+    }
+
+
+    lastFirebaseUpdate =
+        now;
+
+
+    try {
+
+        await update(
+
+            ref(
+                database,
+                "buses/" +
+                currentBusNumber
+            ),
+
+            {
+
+                latitude: latitude,
+                longitude: longitude,
+                gpsAccuracy: accuracy,
+                gpsStatus: "LIVE",
+                status: "LIVE",
+                startTime: rideStartTime,
+                arrivalTime: null,
+                durationSeconds: null,
+                sessionStatus: "ACTIVE",
+                updatedAt: now
+
+            }
+
+        );
+
+        if (selectedDriverId) {
+            await update(
+                ref(database, "drivers/" + selectedDriverId),
+                {
+                    currentBus: currentBusNumber,
+                    gpsStatus: "LIVE",
+                    sessionStatus: "ACTIVE",
+                    latitude: latitude,
+                    longitude: longitude,
+                    gpsAccuracy: accuracy,
+                    lastSeen: now,
+                    updatedAt: now
+                }
+            );
+        }
+
+
+        firebaseUpdateText.innerText =
+            new Date(
+                now
+            ).toLocaleTimeString();
+
+
+        console.log(
+
+            "LIVE LOCATION SENT",
+
+            {
+
+                bus:
+                    currentBusNumber,
+
+                latitude:
+                    latitude,
+
+                longitude:
+                    longitude,
+
+                accuracy:
+                    accuracy,
+
+                updatedAt:
+                    now
+
+            }
+
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Firebase location error:",
+            error
+        );
+
+
+        firebaseUpdateText.innerText =
+            "Firebase error";
+
+    }
+
+}
+
+
+/* ================================
+   GPS ERROR
+================================ */
+
+function handleGpsError(error) {
+
+    console.error(
+        "GPS error:",
+        error
+    );
+
+
+    let message =
+        "GPS unavailable";
+
+
+    if (
+        error.code ===
+        error.PERMISSION_DENIED
+    ) {
+
+        message =
+            "GPS permission denied";
+
+    }
+
+    else if (
+        error.code ===
+        error.POSITION_UNAVAILABLE
+    ) {
+
+        message =
+            "GPS position unavailable";
+
+    }
+
+    else if (
+        error.code ===
+        error.TIMEOUT
+    ) {
+
+        message =
+            "GPS request timed out";
+
+    }
+
+
+    statusText.innerText =
+        "❌ " + message;
+
+
+    gpsAccuracyText.innerText =
+        "--";
+
+
+    gpsLastUpdateText.innerText =
+        "GPS unavailable";
+
+}
+
+
+/* ================================
+   END RIDE
+================================ */
+
+async function endRide() {
+
+    if (
+
+        watchId === null ||
+
+        rideStartTime === null ||
+
+        currentBusNumber === null
+
+    ) {
+
+        return;
+
+    }
+
+
+    if (
+
+        lastLatitude === null ||
+
+        lastLongitude === null
+
+    ) {
+
+        statusText.innerText =
+            "🟡 Waiting for GPS location...";
+
+        return;
+
+    }
+
+
+    const arrivalTime =
+        Date.now();
+
+
+    const durationSeconds =
+
+        Math.floor(
+
+            (
+                arrivalTime -
+                rideStartTime
+            ) / 1000
+
+        );
+
+
+    const minutes =
+        Math.floor(
+            durationSeconds / 60
+        );
+
+
+    const seconds =
+        durationSeconds % 60;
+
+
+    statusText.innerText =
+        "🟡 Saving trip...";
+
+
+    endRideButton.disabled =
+        true;
+
+
+    try {
+
+        /* =========================
+           SAVE TRIP HISTORY
+        ========================= */
+
+        const tripId =
+            "TRIP-" +
+            Date.now();
+
+
+        await set(
+
+            ref(
+
+                database,
+
+                "tripHistory/" +
+                tripId
+
+            ),
+
+            {
+
+                tripId:
+                    tripId,
+
+                busNumber:
+                    currentBusNumber,
+
+                driverName:
+                    (latestBuses[currentBusNumber] || {}).driverName || "No Driver",
+
+                destination:
+                    (latestBuses[currentBusNumber] || {}).destination || "No Destination",
+
+                startTime:
+                    rideStartTime,
+
+                arrivalTime:
+                    arrivalTime,
+
+                durationSeconds:
+                    durationSeconds,
+
+                latitude:
+                    lastLatitude,
+
+                longitude:
+                    lastLongitude,
+
+                status:
+                    "COMPLETED",
+
+                createdAt:
+                    arrivalTime
+
+            }
+
+        );
+
+
+        console.log(
+
+            "Trip history saved:",
+
+            tripId
+
+        );
+
+
+        alert(
+
+            "Trip history saved successfully!\n\n" +
+            tripId
+
+        );
+
+
+        /* =========================
+           UPDATE BUS
+        ========================= */
+
+        await update(
+
+            ref(
+
+                database,
+
+                "buses/" +
+                currentBusNumber
+
+            ),
+
+            {
+
+                latitude: lastLatitude,
+                longitude: lastLongitude,
+                gpsAccuracy: lastGpsAccuracy,
+                gpsStatus: "OFFLINE",
+                status: "COMPLETED",
+                arrivalTime: arrivalTime,
+                durationSeconds: durationSeconds,
+                sessionStatus: "COMPLETED",
+                updatedAt: arrivalTime
+
+            }
+
+        );
+
+        if (selectedDriverId) {
+            await update(
+                ref(database, "drivers/" + selectedDriverId),
+                {
+                    currentBus: currentBusNumber,
+                    gpsStatus: "OFFLINE",
+                    sessionStatus: "COMPLETED",
+                    lastSeen: arrivalTime,
+                    updatedAt: arrivalTime
+                }
+            );
+        }
+
+
+        /*
+            STOP GPS WATCH
+        */
+
+        navigator.geolocation.clearWatch(
+            watchId
+        );
+
+
+        watchId =
+            null;
+
+
+        /*
+            Reset Firebase timer.
+        */
+
+        lastFirebaseUpdate =
+            0;
+
+
+        statusText.innerText =
+            "🏁 Ride Completed";
+
+
+        statusText.className =
+            "completed";
+
+
+        liveUpdateBox.style.display =
+            "none";
+
+
+        gpsLastUpdateText.innerText =
+            new Date(
+                arrivalTime
+            ).toLocaleTimeString();
+
+
+        firebaseUpdateText.innerText =
+            new Date(
+                arrivalTime
+            ).toLocaleTimeString();
+
+
+        arrivalTimeText.innerText =
+            new Date(
+                arrivalTime
+            ).toLocaleTimeString();
+
+
+        durationText.innerText =
+
+            minutes +
+            " min " +
+            seconds +
+            " sec";
+
+
+        startRideButton.innerText =
+            "▶ Start New Ride";
+
+
+        startRideButton.disabled =
+            false;
+
+
+        busSelect.disabled =
+            false;
+
+
+        /*
+            Keep the selected bus
+            visible after completion.
+        */
+
+        selectedBusText.innerText =
+            currentBusNumber;
+
+
+        rideStartTime =
+            null;
+
+
+        currentBusNumber =
+            null;
+
+
+        console.log(
+            "Ride completed successfully"
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+
+            "End ride Firebase error:",
+
+            error
+
+        );
+
+
+        statusText.innerText =
+            "❌ Failed to save trip: " +
+            error.message;
+
+
+        endRideButton.disabled =
+            false;
+
+    }
+
+}
+
+</script>
+
+</body>
+
+</html>

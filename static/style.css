@@ -1,0 +1,307 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f7fb;
+    color: #172033;
+}
+
+.topbar {
+    background: #101a36;
+    color: white;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.topbar h1 {
+    font-size: 24px;
+}
+
+.topbar p {
+    color: #aeb9d4;
+    margin-top: 5px;
+}
+
+.status {
+    background: #1e2c50;
+    padding: 10px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+}
+
+main {
+    width: 92%;
+    max-width: 1000px;
+    margin: 25px auto;
+}
+
+.welcome {
+    margin-bottom: 20px;
+}
+
+.welcome h2 {
+    font-size: 28px;
+}
+
+.welcome p {
+    color: #68738a;
+    margin-top: 6px;
+}
+
+.alert-card {
+    background: #fff4d6;
+    border: 1px solid #f0d98c;
+    border-radius: 16px;
+    padding: 18px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+}
+
+.alert-card > div {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.alert-icon {
+    font-size: 28px;
+}
+
+.alert-card h3 {
+    margin-bottom: 4px;
+}
+
+.alert-card p {
+    color: #6c5b28;
+}
+
+.bus-card {
+    background: #101a36;
+    color: white;
+    border-radius: 20px;
+    padding: 22px;
+    margin-bottom: 20px;
+}
+
+.bus-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.label {
+    color: #9eabc8;
+    font-size: 12px;
+    letter-spacing: 1px;
+}
+
+.bus-header h2 {
+    margin-top: 5px;
+}
+
+.live {
+    background: #1c9b62;
+    padding: 7px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+}
+
+.bus-info {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-top: 22px;
+}
+
+.bus-info div {
+    background: #1b2748;
+    padding: 15px;
+    border-radius: 12px;
+}
+
+.bus-info span {
+    display: block;
+    color: #9eabc8;
+    font-size: 12px;
+    margin-bottom: 6px;
+}
+
+.map-card,
+.location-card,
+.all-buses {
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 5px 20px rgba(20, 35, 70, 0.06);
+}
+
+.section-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.section-title span {
+    color: #69758d;
+    font-size: 13px;
+}
+
+.map-placeholder {
+    #map {
+    height: 350px;
+    width: 100%;
+    border-radius: 15px;
+    overflow: hidden;
+}
+    height: 350px;
+    border-radius: 15px;
+    background: #dfe8df;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #5d6c60;
+    overflow: hidden;
+}
+
+.map-placeholder::before {
+    content: "";
+    position: absolute;
+    width: 150%;
+    height: 2px;
+    background: #b8c9b9;
+    transform: rotate(-15deg);
+}
+
+.map-placeholder::after {
+    content: "";
+    position: absolute;
+    width: 150%;
+    height: 2px;
+    background: #b8c9b9;
+    transform: rotate(25deg);
+}
+
+.map-placeholder p {
+    z-index: 2;
+    background: white;
+    padding: 10px 15px;
+    border-radius: 10px;
+}
+
+.map-bus,
+.map-user {
+    position: absolute;
+    z-index: 3;
+    font-size: 28px;
+}
+
+.map-bus {
+    top: 35%;
+    left: 30%;
+}
+
+.map-user {
+    bottom: 25%;
+    right: 25%;
+}
+
+.location-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+}
+
+.location-card p {
+    color: #69758d;
+    margin-top: 5px;
+    font-size: 14px;
+}
+
+.location-card button {
+    border: none;
+    background: #2166f3;
+    color: white;
+    padding: 12px 18px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.bus-list {
+    display: grid;
+    gap: 10px;
+}
+
+.mini-bus {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 15px;
+    border: 1px solid #e5e9f0;
+    border-radius: 12px;
+}
+
+.mini-bus > span {
+    font-size: 25px;
+}
+
+.mini-bus div {
+    flex: 1;
+}
+
+.mini-bus small {
+    display: block;
+    color: #1c9b62;
+    margin-top: 3px;
+}
+
+.mini-bus b {
+    color: #566176;
+}
+
+@media (max-width: 650px) {
+
+    .topbar {
+        padding: 16px;
+    }
+
+    main {
+        width: 94%;
+        margin-top: 18px;
+    }
+
+    .alert-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .bus-info {
+        grid-template-columns: 1fr;
+    }
+
+    .location-card {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .location-card button {
+        width: 100%;
+    }
+
+    .map-placeholder {
+        height: 300px;
+    }
+}

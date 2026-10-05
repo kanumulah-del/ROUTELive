@@ -1,0 +1,2194 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>RouteLive</title>
+
+<link
+    rel="stylesheet"
+    href="{{ url_for('static', filename='style.css') }}"
+>
+
+<link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+
+<style>
+
+.repair-notices {
+    margin-top: 20px;
+}
+
+.dynamic-alert {
+    background: #fff7df;
+    border: 1px solid #f2cf72;
+    border-radius: 16px;
+    padding: 18px;
+    margin-bottom: 15px;
+}
+
+.dynamic-alert h3 {
+    margin: 0 0 8px;
+    color: #8a5a00;
+}
+
+.dynamic-alert p {
+    margin: 6px 0;
+}
+
+.replacement-box {
+    margin-top: 12px;
+    padding: 12px;
+    background: white;
+    border-radius: 10px;
+}
+
+.replacement-box strong {
+    color: #2166f3;
+}
+
+.alternativeBusButton {
+    margin-left: 10px;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    background: #2166f3;
+    color: white;
+    font-weight: 600;
+}
+
+.alternativeBusButton:hover {
+    opacity: 0.9;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header class="topbar">
+
+<div>
+
+    <h1>
+        🚍 RouteLive
+    </h1>
+
+    <p>
+        Live Bus Tracking
+    </p>
+
+</div>
+
+<div class="status">
+    🟢 System Online
+</div>
+
+</header>
+
+<main>
+
+<section class="welcome">
+
+<h2>
+    Welcome to RouteLive
+</h2>
+
+<p>
+    Track your bus in real time.
+</p>
+
+</section>
+
+
+<!-- =========================
+     REPAIR NOTIFICATIONS
+========================== -->
+
+<section
+    id="repairNoticesSection"
+    class="repair-notices"
+>
+
+<div id="repairNotices"></div>
+
+</section>
+
+
+<!-- =========================
+     YOUR BUS
+========================== -->
+
+<section class="bus-card">
+
+<div class="bus-header">
+
+    <div>
+
+        <span class="label">
+            YOUR BUS
+        </span>
+
+        <h2 id="assignedBusNumber">
+            🚌 Loading...
+        </h2>
+
+    </div>
+
+    <span
+        class="live"
+        id="assignedStatus"
+    >
+        ● Loading...
+    </span>
+
+</div>
+
+
+<div class="bus-info">
+
+    <div>
+
+        <span>
+            Driver
+        </span>
+
+        <strong id="assignedDriver">
+            Loading...
+        </strong>
+
+        <small id="assignedDriverPhone">
+            Loading...
+        </small>
+
+    </div>
+
+
+    <div>
+
+        <span>
+            Destination
+        </span>
+
+        <strong id="assignedDestination">
+            Loading...
+        </strong>
+
+    </div>
+
+
+    <div>
+
+        <span>
+            ETA
+        </span>
+
+        <strong id="assignedETA">
+            Loading...
+        </strong>
+
+    </div>
+
+
+    <div>
+
+        <span>
+            Last GPS Update
+        </span>
+
+        <strong id="assignedUpdatedAt">
+            Loading...
+        </strong>
+
+    </div>
+
+</div>
+
+</section>
+
+
+<!-- =========================
+     ALTERNATIVE BUS
+========================== -->
+
+<section
+    class="bus-card"
+    id="alternativeBusCard"
+    style="display:none;"
+>
+
+    <div class="section-title">
+
+        <h2>
+            🔄 Alternative Bus
+        </h2>
+
+        <span>
+            Selected
+        </span>
+
+    </div>
+
+
+    <div class="bus-info">
+
+        <div>
+
+            <span>
+                Bus
+            </span>
+
+            <strong id="alternativeBusNumber">
+                Loading...
+            </strong>
+
+        </div>
+
+
+        <div>
+
+            <span>
+                Driver
+            </span>
+
+            <strong id="alternativeBusDriver">
+                Loading...
+            </strong>
+
+        </div>
+
+
+        <div>
+
+            <span>
+                Destination
+            </span>
+
+            <strong id="alternativeBusDestination">
+                Loading...
+            </strong>
+
+        </div>
+
+
+        <div>
+
+            <span>
+                Status
+            </span>
+
+            <strong id="alternativeBusStatus">
+                Loading...
+            </strong>
+            <div>
+    <button id="switchToAlternativeButton">
+        🔄 Switch to This Bus
+    </button>
+</div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================
+     ROUTE & STOPS
+========================== -->
+
+<section class="bus-card">
+
+<div class="section-title">
+
+    <h2>
+        🛣️ Route
+    </h2>
+
+    <span id="routeName">
+        Loading...
+    </span>
+
+</div>
+
+<div id="busStops">
+
+    <p>
+        Loading stops...
+    </p>
+
+</div>
+
+</section>
+
+
+<!-- =========================
+     LIVE MAP
+========================== -->
+
+<section class="map-card">
+
+<div class="section-title">
+
+    <h2>
+        Live Map
+    </h2>
+
+    <span>
+        GPS Tracking
+    </span>
+
+</div>
+
+<div
+    id="map"
+    style="height: 400px; width: 100%;"
+></div>
+<div style="margin-top: 10px;">
+    <button id="followBusButton">
+        🎯 Follow My Bus
+    </button>
+</div>
+</section>
+
+
+<!-- =========================
+     PASSENGER LOCATION
+========================== -->
+
+<section class="location-card">
+
+<div>
+
+    <h3>
+        📍 My Location
+    </h3>
+
+    <p>
+        Share your location if the driver hasn't updated recently.
+    </p>
+
+</div>
+
+<button id="shareLocationButton">
+
+    📍 Share My Location
+
+</button>
+
+</section>
+
+
+<!-- =========================
+     ALL BUSES
+========================== -->
+
+<section class="all-buses">
+
+<div class="section-title">
+
+    <h2>
+        All Buses
+    </h2>
+
+    <span>
+        View alternatives
+    </span>
+
+</div>
+
+<div
+    class="bus-list"
+    id="busList"
+>
+
+    <div class="mini-bus">
+
+        <span>
+            ⏳
+        </span>
+
+        <div>
+
+            <strong>
+                Loading buses...
+            </strong>
+
+            <small>
+                Firebase
+            </small>
+
+        </div>
+
+        <b>
+            --
+        </b>
+
+    </div>
+
+</div>
+
+</section>
+
+</main>
+
+
+<!-- LEAFLET -->
+
+<script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+</script>
+
+
+<!-- FIREBASE + ROUTELIVE -->
+
+<script type="module">
+
+/* =========================
+   FIREBASE
+========================= */
+
+import {
+    initializeApp
+}
+from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+
+
+import {
+    getDatabase,
+    ref,
+    onValue,
+    set
+}
+from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+
+
+const firebaseConfig = {
+
+    apiKey:
+        "AIzaSyDU8hHCty4VT7dr5Df-GxbdRjSjjuUj6cA",
+
+    authDomain:
+        "routelive-web.firebaseapp.com",
+
+    databaseURL:
+        "https://routelive-web-default-rtdb.firebaseio.com",
+
+    projectId:
+        "routelive-web",
+
+    storageBucket:
+        "routelive-web.firebasestorage.app",
+
+    messagingSenderId:
+        "85996716251",
+
+    appId:
+        "1:85996716251:web:1ba7e5c12502eb9e598cfe"
+
+};
+
+
+const app =
+    initializeApp(
+        firebaseConfig
+    );
+
+
+const database =
+    getDatabase(app);
+
+
+/* =========================
+   MAP
+========================= */
+
+const map =
+    L.map("map")
+        .setView(
+            [17.9850, 83.6867],
+            13
+        );
+
+
+L.tileLayer(
+
+    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+
+    {
+        attribution:
+            "&copy; OpenStreetMap contributors"
+    }
+
+).addTo(map);
+
+
+/* =========================
+   MARKERS
+========================= */
+
+const busMarkers = {};
+const busAnimations = {};
+
+function animateBusMarker(busNumber, marker, targetPosition, duration = 1200) {
+    const start = marker.getLatLng();
+    const startLat = start.lat;
+    const startLng = start.lng;
+    const targetLat = targetPosition[0];
+    const targetLng = targetPosition[1];
+
+    if (busAnimations[busNumber]) {
+        cancelAnimationFrame(busAnimations[busNumber]);
+    }
+
+    const startTime = performance.now();
+
+    function frame(now) {
+        const progress = Math.min((now - startTime) / duration, 1);
+        const eased = progress * (2 - progress);
+
+        marker.setLatLng([
+            startLat + (targetLat - startLat) * eased,
+            startLng + (targetLng - startLng) * eased
+        ]);
+
+        if (progress < 1) {
+            busAnimations[busNumber] = requestAnimationFrame(frame);
+        } else {
+            delete busAnimations[busNumber];
+        }
+    }
+
+    busAnimations[busNumber] = requestAnimationFrame(frame);
+}
+
+let userMarker = null;
+
+let passengerReportedMarker = null;
+/* =========================
+   FOLLOW MY BUS
+========================= */
+
+const followBusButton =
+    document.getElementById(
+        "followBusButton"
+    );
+
+let followMyBus = false;
+
+followBusButton.addEventListener(
+    "click",
+    () => {
+
+        followMyBus =
+            !followMyBus;
+
+        if (followMyBus) {
+
+            followBusButton.innerText =
+                "🛑 Stop Following Bus";
+
+            const marker =
+                busMarkers[selectedAssignedBus];
+
+            if (marker) {
+
+                map.setView(
+                    marker.getLatLng(),
+                    15,
+                    {
+                        animate: true
+                    }
+                );
+
+            }
+
+        } else {
+
+            followBusButton.innerText =
+                "🎯 Follow My Bus";
+
+        }
+
+    }
+);
+
+/* =========================
+   USER ASSIGNED BUS
+========================= */
+
+const assignedBusRef =
+    ref(
+        database,
+        "users/passenger1/assignedBus"
+    );
+let selectedAssignedBus = null;
+
+/* =========================
+   ASSIGNED BUS NUMBER
+========================= */
+
+onValue(
+
+    assignedBusRef,
+
+    (snapshot) => {
+
+        const assignedBus =
+            snapshot.val();
+selectedAssignedBus =
+    assignedBus;
+        console.log(
+            "ASSIGNED BUS:",
+            assignedBus
+        );
+
+        const assignedBusNumber =
+            document.getElementById(
+                "assignedBusNumber"
+            );
+
+        if (assignedBus) {
+
+            assignedBusNumber.innerText =
+                "🚌 " + assignedBus;
+
+        }
+
+        else {
+
+            assignedBusNumber.innerText =
+                "🚌 No Bus Assigned";
+
+        }
+
+    }
+
+);
+
+
+/* =========================
+   ASSIGNED BUS DATA
+========================= */
+
+onValue(
+
+    assignedBusRef,
+
+    (snapshot) => {
+
+        const assignedBus =
+            snapshot.val();
+
+        if (!assignedBus) {
+            return;
+        }
+
+
+        const busRef =
+            ref(
+                database,
+                "buses/" + assignedBus
+            );
+
+
+        onValue(
+
+            busRef,
+
+            (busSnapshot) => {
+
+                const busData =
+                    busSnapshot.val();
+
+                if (!busData) {
+                    return;
+                }
+
+
+                /* DRIVER */
+
+                document.getElementById(
+                    "assignedDriver"
+                ).innerText =
+                    busData.driverName ||
+                    "No Driver";
+
+
+                /* DRIVER PHONE */
+
+                const driverPhoneElement =
+                    document.getElementById(
+                        "assignedDriverPhone"
+                    );
+
+                if (driverPhoneElement) {
+
+                    driverPhoneElement.innerText =
+                        busData.driverPhone ||
+                        "No Phone";
+
+                }
+
+
+                /* DESTINATION */
+
+                document.getElementById(
+                    "assignedDestination"
+                ).innerText =
+                    busData.destination ||
+                    "No Destination";
+
+
+                /* ETA */
+
+                const etaElement =
+                    document.getElementById(
+                        "assignedETA"
+                    );
+
+                if (etaElement) {
+
+                    etaElement.innerText =
+                        busData.eta ||
+                        "No ETA";
+
+                }
+
+
+                /* STATUS */
+
+                const statusElement =
+                    document.getElementById(
+                        "assignedStatus"
+                    );
+
+
+                let displayStatus =
+                    busData.status ||
+                    "UNKNOWN";
+
+                const gpsAge =
+                    busData.updatedAt
+                        ? Date.now() - Number(busData.updatedAt)
+                        : Infinity;
+
+                if (
+                    (busData.status === "LIVE" || busData.gpsStatus === "LIVE") &&
+                    gpsAge > 60000
+                ) {
+                    displayStatus = "GPS STALE";
+                }
+
+
+                if (
+                    displayStatus ===
+                    "REPAIR"
+                ) {
+
+                    displayStatus =
+                        "UNDER REPAIR";
+
+                }
+
+                else if (
+                    displayStatus ===
+                    "REPLACEMENT"
+                ) {
+
+                    displayStatus =
+                        "REPLACEMENT";
+
+                }
+
+                else if (
+                    displayStatus ===
+                    "COMPLETED"
+                ) {
+
+                    displayStatus =
+                        "COMPLETED";
+
+                }
+
+                else if (
+                    displayStatus ===
+                    "AVAILABLE"
+                ) {
+
+                    displayStatus =
+                        "AVAILABLE";
+
+                }
+
+
+                if (statusElement) {
+
+                    statusElement.innerText =
+                        "● " +
+                        displayStatus;
+
+                }
+
+
+                /* LAST GPS UPDATE */
+
+                const updatedElement =
+                    document.getElementById(
+                        "assignedUpdatedAt"
+                    );
+
+
+                if (updatedElement) {
+
+                    if (busData.updatedAt) {
+
+                        const updatedTime =
+                            new Date(
+                                busData.updatedAt
+                            );
+
+
+                        updatedElement.innerText =
+                            updatedTime.toLocaleTimeString(
+                                [],
+                                {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                    second: "2-digit"
+                                }
+                            );
+
+                    }
+
+                    else {
+
+                        updatedElement.innerText =
+                            "No GPS data";
+
+                    }
+
+                }
+
+
+                /* GPS STALE WARNING */
+
+                let gpsWarning =
+                    document.getElementById(
+                        "gpsWarning"
+                    );
+
+
+                if (!gpsWarning) {
+
+                    gpsWarning =
+                        document.createElement(
+                            "div"
+                        );
+
+
+                    gpsWarning.id =
+                        "gpsWarning";
+
+
+                    gpsWarning.style.marginTop =
+                        "12px";
+
+
+                    gpsWarning.style.padding =
+                        "12px";
+
+
+                    gpsWarning.style.borderRadius =
+                        "10px";
+
+
+                    gpsWarning.style.background =
+                        "#fff3cd";
+
+
+                    gpsWarning.style.color =
+                        "#856404";
+
+
+                    gpsWarning.style.display =
+                        "none";
+
+
+                    document
+                        .querySelector(
+                            ".bus-card"
+                        )
+                        .appendChild(
+                            gpsWarning
+                        );
+
+                }
+
+
+                const lastUpdate =
+                    Number(
+                        busData.updatedAt ||
+                        0
+                    );
+
+
+                const secondsSinceUpdate =
+                    (
+                        Date.now() -
+                        lastUpdate
+                    ) / 1000;
+
+
+                if (
+                    busData.status ===
+                    "LIVE" &&
+                    (
+                        !lastUpdate ||
+                        secondsSinceUpdate > 60
+                    )
+                ) {
+
+                    gpsWarning.style.display =
+                        "block";
+
+
+                    gpsWarning.innerText =
+                        "⚠️ GPS signal may be delayed. Last update was more than 1 minute ago.";
+
+                }
+
+                else {
+
+                    gpsWarning.style.display =
+                        "none";
+
+                }
+
+
+                /* BUS ARRIVED */
+
+                let arrivalNotice =
+                    document.getElementById(
+                        "arrivalNotice"
+                    );
+
+
+                if (!arrivalNotice) {
+
+                    arrivalNotice =
+                        document.createElement(
+                            "div"
+                        );
+
+
+                    arrivalNotice.id =
+                        "arrivalNotice";
+
+
+                    arrivalNotice.style.marginTop =
+                        "12px";
+
+
+                    arrivalNotice.style.padding =
+                        "12px";
+
+
+                    arrivalNotice.style.borderRadius =
+                        "10px";
+
+
+                    arrivalNotice.style.background =
+                        "#e8f5e9";
+
+
+                    arrivalNotice.style.color =
+                        "#2e7d32";
+
+
+                    arrivalNotice.style.display =
+                        "none";
+
+
+                    document
+                        .querySelector(
+                            ".bus-card"
+                        )
+                        .appendChild(
+                            arrivalNotice
+                        );
+
+                }
+
+
+                if (
+                    busData.status ===
+                    "COMPLETED"
+                ) {
+
+                    arrivalNotice.style.display =
+                        "block";
+
+
+                    arrivalNotice.innerText =
+                        "✅ Your bus has arrived at " +
+                        (
+                            busData.destination ||
+                            "the destination"
+                        ) +
+                        ".";
+
+                }
+
+                else {
+
+                    arrivalNotice.style.display =
+                        "none";
+
+                }
+
+            }
+
+        );
+
+
+        /* =========================
+           ROUTE & STOPS
+        ========================== */
+
+        const routeRef =
+            ref(
+                database,
+                "buses/" + assignedBus
+            );
+
+
+        onValue(
+
+            routeRef,
+
+            (routeSnapshot) => {
+
+                const route =
+                    routeSnapshot.val();
+
+
+                const routeName =
+                    document.getElementById(
+                        "routeName"
+                    );
+
+
+                const busStops =
+                    document.getElementById(
+                        "busStops"
+                    );
+
+
+                if (!route) {
+
+                    routeName.innerText =
+                        "No Route";
+
+
+                    busStops.innerHTML =
+                        "<p>No route information available.</p>";
+
+                    return;
+
+                }
+
+
+                routeName.innerText =
+                    route.RouteName ||
+                    "Route";
+
+
+                busStops.innerHTML =
+                    "";
+
+
+                if (!route.stops) {
+
+                    busStops.innerHTML =
+                        "<p>No stops available.</p>";
+
+                    return;
+
+                }
+
+
+                Object.entries(
+                    route.stops
+                ).forEach(
+
+                    ([number, stop]) => {
+
+                        const stopElement =
+                            document.createElement(
+                                "div"
+                            );
+
+
+                        stopElement.innerText =
+                            "📍 " +
+                            number +
+                            ". " +
+                            stop;
+
+
+                        stopElement.style.padding =
+                            "8px 0";
+
+
+                        busStops.appendChild(
+                            stopElement
+                        );
+
+                    }
+
+                );
+
+            }
+
+        );
+
+    }
+
+);
+/* =========================
+   ALTERNATIVE BUS
+========================= */
+
+const alternativeBusRef =
+    ref(
+        database,
+        "users/passenger1/alternativeBus"
+    );
+
+const switchButton =
+    document.getElementById(
+        "switchToAlternativeButton"
+    );
+
+let selectedAlternativeBus = null;
+
+
+/* LOAD ALTERNATIVE BUS */
+
+onValue(
+    alternativeBusRef,
+    (snapshot) => {
+
+        const alternativeBus =
+            snapshot.val();
+
+        const card =
+            document.getElementById(
+                "alternativeBusCard"
+            );
+
+        selectedAlternativeBus =
+            alternativeBus;
+
+        if (!alternativeBus) {
+
+            card.style.display =
+                "none";
+
+            return;
+        }
+
+        card.style.display =
+            "block";
+
+        document.getElementById(
+            "alternativeBusNumber"
+        ).innerText =
+            alternativeBus;
+
+
+        const busRef =
+            ref(
+                database,
+                "buses/" + alternativeBus
+            );
+
+
+        onValue(
+            busRef,
+            (busSnapshot) => {
+
+                const busData =
+                    busSnapshot.val();
+
+                if (!busData) {
+                    return;
+                }
+
+
+                document.getElementById(
+                    "alternativeBusDriver"
+                ).innerText =
+                    busData.driverName ||
+                    "No Driver";
+
+
+                document.getElementById(
+                    "alternativeBusDestination"
+                ).innerText =
+                    busData.destination ||
+                    "No Destination";
+
+
+                document.getElementById(
+                    "alternativeBusStatus"
+                ).innerText =
+                    busData.status ||
+                    "UNKNOWN";
+
+            }
+        );
+
+    }
+);
+
+
+/* =========================
+   SWITCH TO ALTERNATIVE BUS
+========================= */
+
+if (switchButton) {
+
+    switchButton.addEventListener(
+        "click",
+        async () => {
+
+            console.log(
+                "SWITCH BUTTON CLICKED"
+            );
+
+            if (!selectedAlternativeBus) {
+
+                alert(
+                    "No alternative bus selected."
+                );
+
+                return;
+            }
+
+
+            const confirmed =
+                confirm(
+                    "Switch your assigned bus to " +
+                    selectedAlternativeBus +
+                    "?"
+                );
+
+            if (!confirmed) {
+                return;
+            }
+
+
+            try {
+
+                console.log(
+                    "Switching to:",
+                    selectedAlternativeBus
+                );
+
+
+                /* CHANGE ASSIGNED BUS */
+
+                await set(
+                    ref(
+                        database,
+                        "users/passenger1/assignedBus"
+                    ),
+                    selectedAlternativeBus
+                );
+
+
+                /* CLEAR ALTERNATIVE BUS */
+
+                await set(
+                    ref(
+                        database,
+                        "users/passenger1/alternativeBus"
+                    ),
+                    null
+                );
+
+
+                alert(
+                    "✅ Your bus has been switched to " +
+                    selectedAlternativeBus
+                );
+
+
+                console.log(
+                    "BUS SWITCH SUCCESSFUL"
+                );
+
+            }
+
+            catch (error) {
+
+                console.error(
+                    "BUS SWITCH ERROR:",
+                    error
+                );
+
+                alert(
+                    "❌ Could not switch bus.\n\n" +
+                    error.message
+                );
+
+            }
+
+        }
+    );
+
+}
+
+/* =========================
+   BUS LIST
+========================= */
+
+const busList =
+    document.getElementById(
+        "busList"
+    );
+
+
+const busesRef =
+    ref(
+        database,
+        "buses"
+    );
+
+
+onValue(
+
+    busesRef,
+
+    (snapshot) => {
+
+        const buses =
+            snapshot.val();
+
+
+        console.log(
+            "ALL BUSES:",
+            buses
+        );
+
+
+        if (!buses) {
+
+            busList.innerHTML = `
+
+                <div class="mini-bus">
+
+                    <span>
+                        ℹ️
+                    </span>
+
+                    <div>
+
+                        <strong>
+                            No buses
+                        </strong>
+
+                        <small>
+                            No live bus data
+                        </small>
+
+                    </div>
+
+                    <b>
+                        --
+                    </b>
+
+                </div>
+
+            `;
+
+            return;
+
+        }
+
+
+        busList.innerHTML =
+            "";
+
+
+        Object.entries(
+            buses
+        ).forEach(
+
+            ([busNumber, data]) => {
+
+                if (!data) {
+                    return;
+                }
+
+                const latitude =
+                    Number(
+                        data.latitude
+                    );
+
+
+                const longitude =
+                    Number(
+                        data.longitude
+                    );
+
+
+                const status =
+                    data.status ||
+                    "UNKNOWN";
+
+
+                /* MAP MARKER */
+
+                if (
+                    !Number.isNaN(latitude) &&
+                    !Number.isNaN(longitude)
+                ) {
+
+                    const position = [
+                        latitude,
+                        longitude
+                    ];
+
+
+                    if (
+                        !busMarkers[busNumber]
+                    ) {
+
+                        busMarkers[busNumber] =
+                            L.marker(
+                                position
+                            )
+                            .addTo(map)
+                            .bindPopup(
+
+                                "🚍 <b>" +
+                                busNumber +
+                                "</b><br>" +
+
+                                "👨‍✈️ Driver: " +
+                                (
+                                    data.driverName ||
+                                    "Unknown"
+                                ) +
+                                "<br>" +
+
+                                "📍 Destination: " +
+                                (
+                                    data.destination ||
+                                    "Main Campus"
+                                ) +
+                                "<br>" +
+
+                                "🟢 Status: " +
+                                status +
+                                "<br>" +
+
+                                "🌐 GPS: " +
+                                latitude.toFixed(6) +
+                                ", " +
+                                longitude.toFixed(6)
+
+                            );
+
+                    }
+
+                    else {
+
+                        animateBusMarker(
+                            busNumber,
+                            busMarkers[busNumber],
+                            position
+                        );
+
+
+                        busMarkers[busNumber]
+                            .setPopupContent(
+
+                                "🚍 <b>" +
+                                busNumber +
+                                "</b><br>" +
+
+                                "👨‍✈️ Driver: " +
+                                (
+                                    data.driverName ||
+                                    "Unknown"
+                                ) +
+                                "<br>" +
+
+                                "📍 Destination: " +
+                                (
+                                    data.destination ||
+                                    "Main Campus"
+                                ) +
+                                "<br>" +
+
+                                "🟢 Status: " +
+                                status +
+                                "<br>" +
+
+                                "🌐 GPS: " +
+                                latitude.toFixed(6) +
+                                ", " +
+                                longitude.toFixed(6)
+
+                            );
+
+                    }
+                    /* =========================
+   FOLLOW MY BUS
+========================= */
+
+if (
+    followMyBus &&
+    busNumber === selectedAssignedBus &&
+    !Number.isNaN(latitude) &&
+    !Number.isNaN(longitude)
+) {
+
+    map.setView(
+        position,
+        15,
+        {
+            animate: true
+        }
+    );
+
+}
+
+                }
+
+
+                /* BUS CARD */
+
+                let icon =
+                    "🚌";
+
+
+                let statusText =
+                    status;
+
+
+                if (
+                    status ===
+                    "REPAIR"
+                ) {
+
+                    icon =
+                        "🔧";
+
+                    statusText =
+                        "Under Repair";
+
+                }
+
+                else if (
+                    status ===
+                    "REPLACEMENT"
+                ) {
+
+                    icon =
+                        "🔄";
+
+                    statusText =
+                        "Replacement";
+
+                }
+
+                else if (
+                    status ===
+                    "LIVE"
+                ) {
+
+                    icon =
+                        "🚌";
+
+                    statusText =
+                        "Live";
+
+                }
+
+                else if (
+                    status ===
+                    "COMPLETED"
+                ) {
+
+                    icon =
+                        "✅";
+
+                    statusText =
+                        "Completed";
+
+                }
+
+
+                const miniBus =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                miniBus.className =
+                    "mini-bus";
+
+
+                miniBus.innerHTML = `
+
+                    <span>
+                        ${icon}
+                    </span>
+
+                    <div>
+
+                        <strong>
+                            ${busNumber}
+                        </strong>
+
+                        <small>
+                            ${statusText}
+                        </small>
+
+                    </div>
+
+                    <b>
+                        ${data.destination || "--"}
+                    </b>
+
+                    ${
+                        status === "LIVE"
+                            ? `
+                                <button
+                                    class="alternativeBusButton"
+                                    data-bus="${busNumber}"
+                                >
+                                    Select
+                                </button>
+                              `
+                            : ""
+                    }
+
+                `;
+
+
+                busList.appendChild(
+                    miniBus
+                );
+
+
+                /* ALTERNATIVE BUS BUTTON */
+
+                const alternativeButton =
+                    miniBus.querySelector(
+                        ".alternativeBusButton"
+                    );
+
+
+                if (alternativeButton) {
+
+                    alternativeButton.addEventListener(
+
+                        "click",
+
+                        async () => {
+
+                            try {
+
+                                await set(
+
+                                    ref(
+                                        database,
+                                        "users/passenger1/alternativeBus"
+                                    ),
+
+                                    busNumber
+
+                                );
+
+
+                                alert(
+                                    busNumber +
+                                    " selected as your alternative bus."
+                                );
+
+                            }
+
+                            catch (error) {
+
+                                console.error(
+                                    "Alternative bus error:",
+                                    error
+                                );
+
+
+                                alert(
+                                    "Could not select alternative bus."
+                                );
+
+                            }
+
+                        }
+
+                    );
+
+                }
+
+            }
+
+        );
+
+    }
+
+);
+
+
+/* =========================
+   REPAIR / REPLACEMENT
+   NOTIFICATIONS
+========================= */
+
+const repairNoticesRef =
+    ref(
+        database,
+        "repairNotices"
+    );
+
+
+onValue(
+
+    repairNoticesRef,
+
+    (snapshot) => {
+
+        const notices =
+            snapshot.val();
+
+
+        const noticesContainer =
+            document.getElementById(
+                "repairNotices"
+            );
+
+
+        noticesContainer.innerHTML =
+            "";
+
+
+        if (!notices) {
+            return;
+        }
+
+
+        let activeNoticeFound =
+            false;
+
+
+        Object.entries(
+            notices
+        ).forEach(
+
+            ([id, notice]) => {
+
+                if (
+                    !notice ||
+                    notice.status !==
+                    "ACTIVE"
+                ) {
+
+                    return;
+
+                }
+
+
+                activeNoticeFound =
+                    true;
+
+
+                const alert =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                alert.className =
+                    "dynamic-alert";
+
+
+                alert.innerHTML = `
+
+                    <h3>
+                        ⚠️ Bus Service Update
+                    </h3>
+
+                    <p>
+
+                        🔧
+                        <strong>
+                            ${notice.originalBus}
+                        </strong>
+
+                        is currently under repair.
+
+                    </p>
+
+                    <div class="replacement-box">
+
+                        🚍 Replacement Bus:
+                        <strong>
+                            ${notice.replacementBus}
+                        </strong>
+
+                        <br><br>
+
+                        👨‍✈️ Driver:
+                        <strong>
+                            ${notice.replacementDriver ||
+                            "Assigned Driver"}
+                        </strong>
+
+                        <br><br>
+
+                        📍 Route:
+                        <strong>
+                            ${notice.destination ||
+                            "Main Campus"}
+                        </strong>
+
+                    </div>
+
+                `;
+
+
+                noticesContainer.appendChild(
+                    alert
+                );
+
+            }
+
+        );
+
+
+        if (!activeNoticeFound) {
+
+            noticesContainer.innerHTML =
+                "";
+
+        }
+
+    }
+
+);
+
+
+/* =========================
+   PASSENGER LIVE LOCATION
+========================= */
+
+const shareLocationButton =
+    document.getElementById(
+        "shareLocationButton"
+    );
+
+
+shareLocationButton.addEventListener(
+    "click",
+    shareMyLocation
+);
+
+
+function shareMyLocation() {
+
+    if (
+        !navigator.geolocation
+    ) {
+
+        alert(
+            "GPS is not supported by this browser."
+        );
+
+        return;
+
+    }
+
+
+    shareLocationButton.innerText =
+        "📍 Getting Live Location...";
+
+
+    navigator.geolocation.watchPosition(
+
+        function(position) {
+
+            const latitude =
+                position.coords.latitude;
+
+
+            const longitude =
+                position.coords.longitude;
+
+
+            const accuracy =
+                position.coords.accuracy;
+
+
+            console.log(
+                "LIVE PASSENGER GPS:",
+                {
+                    latitude,
+                    longitude,
+                    accuracy
+                }
+            );
+
+
+            /* SAVE PASSENGER LOCATION */
+
+            set(
+
+                ref(
+                    database,
+                    "passengerLocations/passenger1"
+                ),
+
+                {
+
+                    latitude:
+                        latitude,
+
+                    longitude:
+                        longitude,
+
+                    accuracy:
+                        accuracy,
+
+                    status:
+                        "PASSENGER_REPORTED",
+
+                    updatedAt:
+                        Date.now()
+
+                }
+
+            )
+            .then(
+
+                () => {
+
+                    console.log(
+                        "Passenger location saved to Firebase"
+                    );
+
+                }
+
+            )
+            .catch(
+
+                (error) => {
+
+                    console.error(
+                        "Passenger Firebase error:",
+                        error
+                    );
+
+                }
+
+            );
+
+
+            /* SHOW USER LOCATION */
+
+            const userPosition = [
+                latitude,
+                longitude
+            ];
+
+
+            if (
+                userMarker === null
+            ) {
+
+                userMarker =
+                    L.marker(
+                        userPosition
+                    )
+                    .addTo(map)
+                    .bindPopup(
+                        "📍 Your Live Location"
+                    )
+                    .openPopup();
+
+            }
+
+            else {
+
+                userMarker
+                    .setLatLng(
+                        userPosition
+                    );
+
+            }
+
+
+            map.setView(
+                userPosition,
+                15
+            );
+
+
+            shareLocationButton.innerText =
+                "🟢 Live Location Active";
+
+        },
+
+
+        function(error) {
+
+            console.error(
+                "Passenger GPS error:",
+                error
+            );
+
+
+            shareLocationButton.innerText =
+                "📍 Share My Location";
+
+
+            alert(
+                "GPS Error: " +
+                error.message
+            );
+
+        },
+
+
+        {
+
+            enableHighAccuracy:
+                true,
+
+            maximumAge:
+                0,
+
+            timeout:
+                30000
+
+        }
+
+    );
+
+}
+
+
+/* =========================
+   PASSENGER-REPORTED
+   LOCATION
+========================= */
+
+const passengerRef =
+    ref(
+        database,
+        "passengerLocations/passenger1"
+    );
+
+
+onValue(
+
+    passengerRef,
+
+    (snapshot) => {
+
+        const data =
+            snapshot.val();
+
+
+        console.log(
+            "Passenger reported data:",
+            data
+        );
+
+
+        if (!data) {
+            return;
+        }
+
+
+        const latitude =
+            Number(
+                data.latitude
+            );
+
+
+        const longitude =
+            Number(
+                data.longitude
+            );
+
+
+        if (
+            Number.isNaN(latitude) ||
+            Number.isNaN(longitude)
+        ) {
+
+            return;
+
+        }
+
+
+        const position = [
+            latitude,
+            longitude
+        ];
+
+
+        if (
+            passengerReportedMarker ===
+            null
+        ) {
+
+            passengerReportedMarker =
+                L.marker(
+                    position
+                )
+                .addTo(map)
+                .bindPopup(
+                    "📍 Passenger-reported location"
+                );
+
+        }
+
+        else {
+
+            passengerReportedMarker
+                .setLatLng(
+                    position
+                );
+
+        }
+
+    }
+
+);
+
+</script>
+
+</body>
+
+</html>

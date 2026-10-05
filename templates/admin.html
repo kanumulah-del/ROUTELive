@@ -1,0 +1,7475 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>RouteLive Admin</title>
+
+<link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f4f7fb;
+    color: #172033;
+}
+
+.topbar {
+    background: #101a36;
+    color: white;
+    padding: 22px;
+}
+
+.topbar h1 {
+    margin: 0;
+}
+
+.topbar p {
+    margin: 6px 0 0;
+    color: #b8c2dc;
+}
+
+.container {
+    max-width: 1400px;
+    margin: auto;
+    padding: 25px;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns:
+        repeat(auto-fit, minmax(180px, 1fr));
+    gap: 18px;
+}
+
+.stat-card {
+    background: white;
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow:
+        0 5px 20px rgba(0,0,0,0.06);
+}
+
+.stat-card span {
+    color: #667085;
+    font-size: 14px;
+}
+
+.stat-card h2 {
+    margin: 10px 0 0;
+    font-size: 30px;
+}
+
+.section {
+    background: white;
+    margin-top: 25px;
+    padding: 22px;
+    border-radius: 16px;
+    box-shadow:
+        0 5px 20px rgba(0,0,0,0.06);
+}
+
+.section h2 {
+    margin-top: 0;
+}
+
+.control-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+}
+
+.control-group label {
+    display: block;
+    margin-bottom: 7px;
+    color: #667085;
+    font-size: 14px;
+}
+
+select,
+input {
+    width: 100%;
+    padding: 13px;
+    border: 1px solid #d9deea;
+    border-radius: 10px;
+    font-size: 15px;
+    background: white;
+}
+
+button {
+    width: 100%;
+    padding: 13px;
+    border: none;
+    border-radius: 10px;
+    background: #2166f3;
+    color: white;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.secondary-button {
+    background: #667085;
+}
+
+.delete-button {
+    background: #dc3545;
+}
+
+.edit-button {
+    background: #2166f3;
+}
+
+.restore-button {
+    background: #16803c;
+}
+
+.message {
+    margin-top: 16px;
+    padding: 14px;
+    border-radius: 10px;
+    display: none;
+    font-weight: bold;
+    white-space: pre-line;
+}
+
+.success-message {
+    background: #e7f7ed;
+    color: #16803c;
+}
+
+.error-message {
+    background: #fdecec;
+    color: #c62828;
+}
+
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    min-width: 1050px;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    padding: 14px;
+    text-align: left;
+    border-bottom:
+        1px solid #edf0f5;
+}
+
+th {
+    color: #667085;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+td {
+    white-space: nowrap;
+}
+
+.live {
+    color: #16803c;
+    font-weight: bold;
+}
+
+.completed {
+    color: #2166f3;
+    font-weight: bold;
+}
+
+.repair {
+    color: #d97706;
+    font-weight: bold;
+}
+
+.replacement {
+    color: #7c3aed;
+    font-weight: bold;
+}
+
+.available {
+    color: #16803c;
+    font-weight: bold;
+}
+
+.offline {
+    color: #777;
+}
+
+.on-duty {
+    color: #2166f3;
+    font-weight: bold;
+}
+
+.empty {
+    color: #667085;
+    padding: 20px 0;
+}
+
+.time {
+    line-height: 1.5;
+}
+
+.duration {
+    font-weight: bold;
+}
+
+.repair-card {
+    background: #fff8e8;
+    border: 1px solid #f5d58a;
+    padding: 18px;
+    border-radius: 14px;
+    margin-top: 18px;
+}
+
+.repair-card strong {
+    color: #a15c00;
+}
+
+.driver-form,
+.bus-form,
+.member-form,
+.route-form {
+    background: #f8faff;
+    padding: 18px;
+    border-radius: 14px;
+    border: 1px solid #e4e9f2;
+}
+
+.form-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 18px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.action-buttons button {
+    width: auto;
+    min-width: 80px;
+    padding: 9px 12px;
+    font-size: 13px;
+}
+
+.driver-status,
+.bus-status,
+.member-status {
+    padding: 6px 10px;
+    border-radius: 20px;
+    background: #e7f7ed;
+    color: #16803c;
+    font-weight: bold;
+    display: inline-block;
+}
+
+.driver-offline,
+.bus-offline,
+.member-inactive {
+    background: #eef0f3;
+    color: #667085;
+}
+
+.bus-live {
+    background: #e7f7ed;
+    color: #16803c;
+}
+
+.bus-repair {
+    background: #fff4dc;
+    color: #a15c00;
+}
+
+.bus-replacement {
+    background: #f0e8ff;
+    color: #7c3aed;
+}
+
+.bus-completed {
+    background: #eaf1ff;
+    color: #2166f3;
+}
+
+.member-active {
+    background: #e7f7ed;
+    color: #16803c;
+}
+
+.member-inactive {
+    background: #eef0f3;
+    color: #667085;
+}
+
+.trip-history-table {
+    min-width: 1100px;
+}
+
+.trip-status {
+    color: #16803c;
+    font-weight: bold;
+}
+
+.info-box {
+    background: #eef4ff;
+    border: 1px solid #cddcff;
+    color: #34517d;
+    padding: 14px;
+    border-radius: 10px;
+    margin-bottom: 18px;
+}
+
+.member-info {
+    background: #f3f8ff;
+    border: 1px solid #d7e6ff;
+    color: #34517d;
+    padding: 14px;
+    border-radius: 10px;
+    margin-bottom: 18px;
+}
+
+
+/* =========================
+   ADMIN LIVE MAP
+========================= */
+
+.map-info {
+    background: #eef4ff;
+    border: 1px solid #cddcff;
+    color: #34517d;
+    padding: 14px;
+    border-radius: 10px;
+    margin-bottom: 18px;
+    line-height: 1.6;
+}
+
+.map-controls {
+    display: grid;
+    grid-template-columns:
+        minmax(220px, 1fr)
+        220px;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.map-control-button {
+    width: 100%;
+}
+
+.admin-map {
+    width: 100%;
+    height: 520px;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid #dce2ec;
+    z-index: 1;
+}
+
+.map-summary {
+    display: grid;
+    grid-template-columns:
+        repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.map-summary-card {
+    background: #f8faff;
+    border: 1px solid #e0e6f0;
+    border-radius: 12px;
+    padding: 14px;
+}
+
+.map-summary-card span {
+    display: block;
+    color: #667085;
+    font-size: 13px;
+    margin-bottom: 5px;
+}
+
+.map-summary-card strong {
+    font-size: 22px;
+}
+
+.map-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 16px;
+    padding: 14px;
+    background: #f8faff;
+    border: 1px solid #e0e6f0;
+    border-radius: 12px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.legend-dot {
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.legend-live {
+    background: #16803c;
+}
+
+.legend-available {
+    background: #2166f3;
+}
+
+.legend-repair {
+    background: #d97706;
+}
+
+.legend-replacement {
+    background: #7c3aed;
+}
+
+.legend-completed {
+    background: #667085;
+}
+
+.legend-passenger {
+    background: #e11d48;
+}
+
+.map-status-message {
+    margin-top: 12px;
+    color: #667085;
+    font-size: 13px;
+}
+
+.bus-map-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow:
+        0 3px 10px rgba(0,0,0,0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 21px;
+}
+
+.bus-map-live {
+    background: #16803c;
+}
+
+.bus-map-available {
+    background: #2166f3;
+}
+
+.bus-map-repair {
+    background: #d97706;
+}
+
+.bus-map-replacement {
+    background: #7c3aed;
+}
+
+.bus-map-completed {
+    background: #667085;
+}
+
+.bus-map-offline {
+    background: #475467;
+}
+
+.passenger-map-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 3px solid white;
+    background: #e11d48;
+    box-shadow:
+        0 3px 10px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+}
+
+.popup-title {
+    font-size: 17px;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.popup-line {
+    margin: 5px 0;
+}
+
+.popup-stale {
+    color: #d97706;
+    font-weight: bold;
+    margin-top: 8px;
+}
+
+.popup-live {
+    color: #16803c;
+    font-weight: bold;
+}
+
+.popup-passenger {
+    color: #e11d48;
+    font-weight: bold;
+}
+
+
+/* =========================
+   ROUTE & STOP MANAGEMENT
+========================= */
+
+.route-info {
+    background: #eef4ff;
+    border: 1px solid #cddcff;
+    color: #34517d;
+    padding: 14px;
+    border-radius: 10px;
+    margin-bottom: 18px;
+    line-height: 1.6;
+}
+
+.route-summary {
+    display: grid;
+    grid-template-columns:
+        repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin-top: 18px;
+}
+
+.route-summary-card {
+    background: white;
+    border: 1px solid #e0e6f0;
+    border-radius: 12px;
+    padding: 14px;
+}
+
+.route-summary-card span {
+    display: block;
+    color: #667085;
+    font-size: 13px;
+    margin-bottom: 6px;
+}
+
+.route-summary-card strong {
+    font-size: 17px;
+}
+
+.stop-editor {
+    margin-top: 20px;
+}
+
+.stop-editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.stop-editor-header h3 {
+    margin: 0;
+}
+
+.add-stop-button {
+    width: auto;
+    padding: 10px 16px;
+}
+
+.stop-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.stop-row {
+    display: grid;
+    grid-template-columns: 48px 1fr auto;
+    gap: 10px;
+    align-items: center;
+    background: white;
+    border: 1px solid #dfe5ef;
+    padding: 10px;
+    border-radius: 12px;
+}
+
+.stop-number {
+    width: 48px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background: #eef4ff;
+    color: #2166f3;
+    font-weight: bold;
+}
+
+.stop-name-input {
+    margin: 0;
+}
+
+.stop-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.stop-action-button {
+    width: 42px;
+    min-width: 42px;
+    padding: 10px 6px;
+    font-size: 16px;
+}
+
+.move-stop-button {
+    background: #667085;
+}
+
+.delete-stop-button {
+    background: #dc3545;
+}
+
+.route-empty {
+    background: white;
+    border: 1px dashed #cfd6e3;
+    color: #667085;
+    padding: 22px;
+    border-radius: 12px;
+    text-align: center;
+}
+
+.route-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 18px;
+}
+
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 700px) {
+
+    .container {
+        padding: 15px;
+    }
+
+    .form-buttons {
+        grid-template-columns: 1fr;
+    }
+
+    .route-buttons {
+        grid-template-columns: 1fr;
+    }
+
+    .map-controls {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-map {
+        height: 430px;
+    }
+
+    .stop-row {
+        grid-template-columns: 42px 1fr;
+    }
+
+    .stop-number {
+        width: 42px;
+    }
+
+    .stop-actions {
+        grid-column: 1 / -1;
+    }
+
+    .stop-action-button {
+        flex: 1;
+        width: auto;
+    }
+
+    .stop-editor-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .add-stop-button {
+        width: 100%;
+    }
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header class="topbar">
+
+<h1>
+    🚍 RouteLive Admin
+</h1>
+
+<p>
+    Transport Management Dashboard
+</p>
+
+</header>
+
+<main class="container">
+
+
+<!-- =========================
+     STATISTICS
+========================== -->
+
+<section class="stats">
+
+<div class="stat-card">
+    <span>Total Buses</span>
+    <h2 id="totalBuses">0</h2>
+</div>
+
+<div class="stat-card">
+    <span>Live Buses</span>
+    <h2 id="liveBuses">0</h2>
+</div>
+
+<div class="stat-card">
+    <span>Completed Trips</span>
+    <h2 id="completedTrips">0</h2>
+</div>
+
+<div class="stat-card">
+    <span>Repair Buses</span>
+    <h2 id="repairBuses">0</h2>
+</div>
+
+<div class="stat-card">
+    <span>Active Drivers</span>
+    <h2 id="activeDrivers">0</h2>
+</div>
+
+<div class="stat-card">
+    <span>Total Members</span>
+    <h2 id="totalMembers">0</h2>
+</div>
+
+</section>
+
+
+<!-- =========================
+     ADMIN LIVE MAP
+========================== -->
+
+<section class="section">
+
+<h2>
+    🗺️ Admin Live Map
+</h2>
+
+<div class="map-info">
+
+    <strong>📡 Real-Time Transport Monitoring</strong><br>
+
+    This map displays live bus GPS locations and
+    passenger-reported locations directly from Firebase.
+    Bus markers update automatically whenever GPS data changes.
+
+</div>
+
+
+<div class="map-controls">
+
+<div class="control-group">
+
+<label>
+    Locate Bus
+</label>
+
+<select id="adminMapBusSelect">
+
+<option value="">
+    Select bus
+</option>
+
+</select>
+
+</div>
+
+<button
+    id="centerAllBusesButton"
+    class="map-control-button"
+>
+    🎯 Center All Buses
+</button>
+
+</div>
+
+
+<div
+    id="adminMap"
+    class="admin-map"
+></div>
+
+
+<div
+    id="mapStatusMessage"
+    class="map-status-message"
+>
+    Connecting to live Firebase bus data...
+</div>
+
+
+<div class="map-summary">
+
+<div class="map-summary-card">
+    <span>Total Buses</span>
+    <strong id="mapTotalBuses">0</strong>
+</div>
+
+<div class="map-summary-card">
+    <span>Live</span>
+    <strong id="mapLiveBuses">0</strong>
+</div>
+
+<div class="map-summary-card">
+    <span>GPS Visible</span>
+    <strong id="mapGpsBuses">0</strong>
+</div>
+
+<div class="map-summary-card">
+    <span>Stale GPS</span>
+    <strong id="mapStaleBuses">0</strong>
+</div>
+
+<div class="map-summary-card">
+    <span>Passengers</span>
+    <strong id="mapPassengers">0</strong>
+</div>
+
+</div>
+
+
+<div class="map-legend">
+
+<div class="legend-item">
+    <span class="legend-dot legend-live"></span>
+    LIVE
+</div>
+
+<div class="legend-item">
+    <span class="legend-dot legend-available"></span>
+    AVAILABLE
+</div>
+
+<div class="legend-item">
+    <span class="legend-dot legend-repair"></span>
+    REPAIR
+</div>
+
+<div class="legend-item">
+    <span class="legend-dot legend-replacement"></span>
+    REPLACEMENT
+</div>
+
+<div class="legend-item">
+    <span class="legend-dot legend-completed"></span>
+    COMPLETED / OFFLINE
+</div>
+
+<div class="legend-item">
+    <span class="legend-dot legend-passenger"></span>
+    PASSENGER
+</div>
+
+</div>
+
+</section>
+
+
+<!-- =========================
+     DRIVER MANAGEMENT
+========================== -->
+
+<section class="section">
+
+<h2>
+    👨‍✈️ Driver Management
+</h2>
+
+<div class="driver-form">
+
+<div class="control-grid">
+
+<div class="control-group">
+
+<label>
+    Driver Name
+</label>
+
+<input
+    id="driverName"
+    type="text"
+    placeholder="Example: Ravi Kumar"
+>
+
+</div>
+
+
+<div class="control-group">
+
+<label>
+    Phone Number
+</label>
+
+<input
+    id="driverPhone"
+    type="tel"
+    placeholder="Example: 9999999999"
+>
+
+</div>
+
+
+<div class="control-group">
+
+<label>
+    Assigned Bus
+</label>
+
+<select id="driverBus">
+
+<option value="">
+    Select bus
+</option>
+
+</select>
+
+</div>
+
+
+<div class="control-group">
+
+<label>
+    Availability
+</label>
+
+<select id="driverAvailability">
+
+<option value="AVAILABLE">
+    AVAILABLE
+</option>
+
+<option value="OFFLINE">
+    OFFLINE
+</option>
+
+</select>
+
+</div>
+
+</div>
+
+
+<div class="form-buttons">
+
+<button id="saveDriverButton">
+    ➕ Add Driver
+</button>
+
+<button
+    id="cancelEditButton"
+    class="secondary-button"
+    style="display:none;"
+>
+    Cancel Edit
+</button>
+
+</div>
+
+</div>
+
+
+<div
+    id="driverMessage"
+    class="message"
+></div>
+
+</section>
+
+
+<!-- =========================
+     DRIVER TABLE
+========================== -->
+
+<section class="section">
+
+<h2>
+    📋 Drivers
+</h2>
+
+<div class="table-wrapper">
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Driver</th>
+<th>Phone</th>
+<th>Assigned Bus</th>
+<th>Availability</th>
+<th>Actions</th>
+
+</tr>
+
+</thead>
+
+<tbody id="driverTable">
+
+<tr>
+
+<td
+    colspan="5"
+    class="empty"
+>
+    Loading drivers...
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</section>
+
+
+<!-- =========================
+     BUS MANAGEMENT
+========================== -->
+
+<section class="section">
+
+<h2>
+    🚌 Bus Management
+</h2>
+
+<div class="info-box">
+
+<strong>ℹ️ Bus Management</strong><br>
+
+Add and manage buses here.
+Editing bus details preserves existing
+GPS location, route stops, trip timing
+and other live tracking data.
+
+</div>
+
+
+<div class="bus-form">
+
+<div class="control-grid">
+
+<div class="control-group">
+
+<label>
+    Bus Number
+</label>
+
+<input
+    id="busNumber"
+    type="text"
+    placeholder="Example: BUS-101"
+>
+
+</div>
+
+
+<div class="control-group">
+
+<label>
+    Route Name
+</label>
+
+<input
+    id="busRouteName"
+    type="text"
+    placeholder="Example: aptb"
+>
+
+</div>
+
+
+<div class="control-group">
+
+<label>
+    Destination
+</label>
+
+<input
+    id="busDestination"
+    type="text"
+    placeholder="Example: Main Campus"
+>
+
+</div>
+
+
+<div class="control-group">
+
+<label>
+    Assigned Driver
+</label>
+
+<select id="busDriver">
+
+<option value="">
+    No Driver
+</option>
+
+</select>
+
+</div>
+
+
+<div class="control-group">
+
+<label>
+    Bus Status
+</label>
+
+<select id="busStatus">
+
+<option value="AVAILABLE">
+    AVAILABLE
+</option>
+
+<option value="OFFLINE">
+    OFFLINE
+</option>
+
+</select>
+
+</div>
+
+</div>
+
+
+<div class="form-buttons">
+
+<button id="saveBusButton">
+    ➕ Add Bus
+</button>
+
+<button
+    id="cancelBusEditButton"
+    class="secondary-button"
+    style="display:none;"
+>
+    Cancel Edit
+</button>
+
+</div>
+
+</div>
+
+
+<div
+    id="busMessage"
+    class="message"
+></div>
+
+</section>
+
+
+<!-- =========================
+     BUS MANAGEMENT TABLE
+========================== -->
+
+<section class="section">
+
+<h2>
+    📋 Managed Buses
+</h2>
+
+<div class="table-wrapper">
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Bus</th>
+<th>Route</th>
+<th>Destination</th>
+<th>Driver</th>
+<th>Status</th>
+<th>Actions</th>
+
+</tr>
+
+</thead>
+
+<tbody id="busManagementTable">
+
+<tr>
+
+<td
+    colspan="6"
+    class="empty"
+>
+    Loading buses...
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</section>
+
+
+<!-- =========================
+     ROUTE & STOP MANAGEMENT
+========================== -->
+
+<section class="section">
+
+<h2>
+    🛣️ Route & Stop Management
+</h2>
+
+<div class="route-info">
+
+<strong>ℹ️ Route Management</strong><br>
+
+Select a bus to manage its route and stops.
+Changes are saved to the existing
+<strong>buses/{bus}/stops</strong> structure
+without removing GPS, driver, status or trip data.
+
+</div>
+
+
+<div class="route-form">
+
+<div class="control-grid">
+
+<div class="control-group">
+
+<label>
+    Select Bus
+</label>
+
+<select id="routeBus">
+
+<option value="">
+    Select bus
+</option>
+
+</select>
+
+</div>
+
+
+<div class="control-group">
+
+<label>
+    Route Name
+</label>
+
+<input
+    id="routeNameInput"
+    type="text"
+    placeholder="Example: AP Transport Route"
+>
+
+</div>
+
+
+<div class="control-group">
+
+<label>
+    Destination
+</label>
+
+<input
+    id="routeDestinationInput"
+    type="text"
+    placeholder="Example: Main Campus"
+>
+
+</div>
+
+</div>
+
+
+<div class="route-summary">
+
+<div class="route-summary-card">
+
+<span>
+    Selected Bus
+</span>
+
+<strong id="routeSelectedBus">
+    --
+</strong>
+
+</div>
+
+
+<div class="route-summary-card">
+
+<span>
+    Total Stops
+</span>
+
+<strong id="routeStopCount">
+    0
+</strong>
+
+</div>
+
+</div>
+
+
+<div class="stop-editor">
+
+<div class="stop-editor-header">
+
+<h3>
+    📍 Route Stops
+</h3>
+
+<button
+    id="addStopButton"
+    class="add-stop-button"
+>
+    ➕ Add Stop
+</button>
+
+</div>
+
+
+<div
+    id="stopList"
+    class="stop-list"
+>
+
+<div class="route-empty">
+    Select a bus to load its stops.
+</div>
+
+</div>
+
+
+<div class="route-buttons">
+
+<button id="saveRouteButton">
+    💾 Save Route
+</button>
+
+<button
+    id="clearRouteButton"
+    class="secondary-button"
+>
+    ↩️ Reload Route
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+
+<div
+    id="routeMessage"
+    class="message"
+></div>
+
+</section>
+
+
+<!-- =========================
+     MEMBERS MANAGEMENT
+========================== -->
+
+<section class="section">
+
+<h2>
+    👥 Members Management
+</h2>
+
+<div class="member-info">
+
+<strong>ℹ️ Member Management</strong><br>
+
+Manage passenger/member accounts here.
+Existing Firebase user fields such as
+assignedBus and alternativeBus are preserved
+when editing a member.
+
+</div>
+
+
+<div class="member-form">
+
+<div class="control-grid">
+
+<div class="control-group">
+
+<label>
+    Member ID
+</label>
+
+<input
+    id="memberId"
+    type="text"
+    placeholder="Example: passenger2"
+>
+
+</div>
+
+
+<div class="control-group">
+
+<label>
+    Member Name
+</label>
+
+<input
+    id="memberName"
+    type="text"
+    placeholder="Example: Rahul Kumar"
+>
+
+</div>
+
+
+<div class="control-group">
+
+<label>
+    Phone Number
+</label>
+
+<input
+    id="memberPhone"
+    type="tel"
+    placeholder="Example: 9876543210"
+>
+
+</div>
+
+
+<div class="control-group">
+
+<label>
+    Assigned Bus
+</label>
+
+<select id="memberBus">
+
+<option value="">
+    No Bus Assigned
+</option>
+
+</select>
+
+</div>
+
+
+<div class="control-group">
+
+<label>
+    Member Status
+</label>
+
+<select id="memberStatus">
+
+<option value="ACTIVE">
+    ACTIVE
+</option>
+
+<option value="INACTIVE">
+    INACTIVE
+</option>
+
+</select>
+
+</div>
+
+</div>
+
+
+<div class="form-buttons">
+
+<button id="saveMemberButton">
+    ➕ Add Member
+</button>
+
+<button
+    id="cancelMemberEditButton"
+    class="secondary-button"
+    style="display:none;"
+>
+    Cancel Edit
+</button>
+
+</div>
+
+</div>
+
+
+<div
+    id="memberMessage"
+    class="message"
+></div>
+
+</section>
+
+
+<!-- =========================
+     MEMBERS TABLE
+========================== -->
+
+<section class="section">
+
+<h2>
+    📋 Members
+</h2>
+
+<div class="table-wrapper">
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Member ID</th>
+<th>Member</th>
+<th>Phone</th>
+<th>Assigned Bus</th>
+<th>Status</th>
+<th>Actions</th>
+
+</tr>
+
+</thead>
+
+<tbody id="memberTable">
+
+<tr>
+
+<td
+    colspan="6"
+    class="empty"
+>
+    Loading members...
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</section>
+
+
+<!-- =========================
+     REPAIR CONTROL
+========================== -->
+
+<section class="section">
+
+<h2>
+    🔧 Repair & Replacement Management
+</h2>
+
+<div class="control-grid">
+
+<div class="control-group">
+
+<label>
+    Bus Under Repair
+</label>
+
+<select id="repairBus">
+
+<option value="">
+    Select bus
+</option>
+
+</select>
+
+</div>
+
+
+<div class="control-group">
+
+<label>
+    Replacement Bus
+</label>
+
+<select id="replacementBus">
+
+<option value="">
+    Select replacement
+</option>
+
+</select>
+
+</div>
+
+
+<div class="control-group">
+
+<label>
+    Replacement Driver
+</label>
+
+<input
+    id="replacementDriver"
+    type="text"
+    placeholder="Example: Suresh Kumar"
+>
+
+</div>
+
+
+<div class="control-group">
+
+<label>
+    Route / Destination
+</label>
+
+<input
+    id="repairDestination"
+    type="text"
+    value="Main Campus"
+>
+
+</div>
+
+</div>
+
+
+<div style="margin-top:18px;">
+
+<button id="assignButton">
+    🔄 Assign Replacement
+</button>
+
+</div>
+
+
+<div
+    id="message"
+    class="message"
+></div>
+
+</section>
+
+
+<!-- =========================
+     ACTIVE REPLACEMENTS
+========================== -->
+
+<section class="section">
+
+<h2>
+    🚨 Active Repair Notices
+</h2>
+
+<div id="repairList">
+
+<div class="empty">
+    No active repair notices.
+</div>
+
+</div>
+
+</section>
+
+
+<!-- =========================
+     BUS STATUS
+========================== -->
+
+<section class="section">
+
+<h2>
+    📊 Bus & Trip Status
+</h2>
+
+<div class="table-wrapper">
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Bus</th>
+<th>Driver</th>
+<th>Destination</th>
+<th>Start Time</th>
+<th>Arrival Time</th>
+<th>Duration</th>
+<th>Status</th>
+<th>Last Update</th>
+
+</tr>
+
+</thead>
+
+<tbody id="busTable">
+
+<tr>
+
+<td
+    colspan="8"
+    class="empty"
+>
+    Loading buses...
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</section>
+
+
+<!-- =========================
+     TRIP HISTORY
+========================== -->
+
+<section class="section">
+
+<h2>
+    📋 Trip History
+</h2>
+
+<div class="table-wrapper">
+
+<table class="trip-history-table">
+
+<thead>
+
+<tr>
+
+<th>Trip ID</th>
+<th>Bus</th>
+<th>Driver</th>
+<th>Destination</th>
+<th>Start Time</th>
+<th>Arrival Time</th>
+<th>Duration</th>
+<th>Status</th>
+
+</tr>
+
+</thead>
+
+<tbody id="tripHistoryTable">
+
+<tr>
+
+<td
+    colspan="8"
+    class="empty"
+>
+    Loading trip history...
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</section>
+
+</main>
+
+
+<script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+</script>
+
+
+<script type="module">
+
+/* =========================
+   FIREBASE
+========================= */
+
+import {
+    initializeApp
+}
+from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+
+import {
+    getDatabase,
+    ref,
+    set,
+    update,
+    onValue
+}
+from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+
+
+const firebaseConfig = {
+
+    apiKey:
+        "AIzaSyDUzH8HCty4VT7dr5Df-GxbdRjSjjuUj6cA",
+
+    authDomain:
+        "routelive-web.firebaseapp.com",
+
+    databaseURL:
+        "https://routelive-web-default-rtdb.firebaseio.com",
+
+    projectId:
+        "routelive-web",
+
+    storageBucket:
+        "routelive-web.firebasestorage.app",
+
+    messagingSenderId:
+        "85996716251",
+
+    appId:
+        "1:85996716251:web:1ba7e5c12502eb9e598cfe"
+
+};
+
+
+const app =
+    initializeApp(firebaseConfig);
+
+const database =
+    getDatabase(app);
+
+
+/* =========================
+   REFERENCES
+========================= */
+
+const busesRef =
+    ref(database, "buses");
+
+const repairsRef =
+    ref(database, "repairNotices");
+
+const tripHistoryRef =
+    ref(database, "tripHistory");
+
+const driversRef =
+    ref(database, "drivers");
+
+const usersRef =
+    ref(database, "users");
+
+const passengerLocationsRef =
+    ref(database, "passengerLocations");
+
+
+/* =========================
+   GLOBAL DATA
+========================= */
+
+let latestDrivers = null;
+let latestBuses = null;
+let latestUsers = null;
+
+
+/* =====================================================
+   ADMIN LIVE MAP
+===================================================== */
+
+let adminMap = null;
+
+const adminBusMarkers = {};
+const adminBusAnimations = {};
+const adminPassengerMarkers = {};
+
+function animateAdminBusMarker(busNumber, marker, targetPosition, duration = 1200) {
+    const start = marker.getLatLng();
+    const startLat = start.lat;
+    const startLng = start.lng;
+    const targetLat = targetPosition[0];
+    const targetLng = targetPosition[1];
+
+    if (adminBusAnimations[busNumber]) {
+        cancelAnimationFrame(adminBusAnimations[busNumber]);
+    }
+
+    const startTime = performance.now();
+
+    function frame(now) {
+        const progress = Math.min((now - startTime) / duration, 1);
+        const eased = progress * (2 - progress);
+
+        marker.setLatLng([
+            startLat + (targetLat - startLat) * eased,
+            startLng + (targetLng - startLng) * eased
+        ]);
+
+        if (progress < 1) {
+            adminBusAnimations[busNumber] = requestAnimationFrame(frame);
+        } else {
+            delete adminBusAnimations[busNumber];
+        }
+    }
+
+    adminBusAnimations[busNumber] = requestAnimationFrame(frame);
+}
+
+let mapInitialized = false;
+
+const STALE_GPS_TIME =
+    60 * 1000;
+
+
+/* =========================
+   MAP ELEMENTS
+========================= */
+
+const adminMapBusSelect =
+    document.getElementById(
+        "adminMapBusSelect"
+    );
+
+const centerAllBusesButton =
+    document.getElementById(
+        "centerAllBusesButton"
+    );
+
+const mapStatusMessage =
+    document.getElementById(
+        "mapStatusMessage"
+    );
+
+const mapTotalBuses =
+    document.getElementById(
+        "mapTotalBuses"
+    );
+
+const mapLiveBuses =
+    document.getElementById(
+        "mapLiveBuses"
+    );
+
+const mapGpsBuses =
+    document.getElementById(
+        "mapGpsBuses"
+    );
+
+const mapStaleBuses =
+    document.getElementById(
+        "mapStaleBuses"
+    );
+
+const mapPassengers =
+    document.getElementById(
+        "mapPassengers"
+    );
+
+
+/* =========================
+   INITIALIZE MAP
+========================= */
+
+function initializeAdminMap() {
+
+    if (mapInitialized) {
+        return;
+    }
+
+    adminMap =
+        L.map(
+            "adminMap"
+        ).setView(
+            [17.6868, 83.2185],
+            12
+        );
+
+
+    L.tileLayer(
+        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        {
+            maxZoom: 19,
+            attribution:
+                '&copy; OpenStreetMap contributors'
+        }
+    ).addTo(
+        adminMap
+    );
+
+
+    mapInitialized =
+        true;
+
+
+    setTimeout(
+        () => {
+            adminMap.invalidateSize();
+        },
+        300
+    );
+
+}
+
+
+/* =========================
+   STATUS CLASS
+========================= */
+
+function getMapStatusClass(
+    status
+) {
+
+    if (status === "LIVE") {
+        return "bus-map-live";
+    }
+
+    if (status === "AVAILABLE") {
+        return "bus-map-available";
+    }
+
+    if (status === "REPAIR") {
+        return "bus-map-repair";
+    }
+
+    if (status === "REPLACEMENT") {
+        return "bus-map-replacement";
+    }
+
+    if (status === "COMPLETED") {
+        return "bus-map-completed";
+    }
+
+    return "bus-map-offline";
+
+}
+
+
+/* =========================
+   STATUS LABEL
+========================= */
+
+function getMapStatusEmoji(
+    status
+) {
+
+    if (status === "LIVE") {
+        return "🚌";
+    }
+
+    if (status === "REPAIR") {
+        return "🔧";
+    }
+
+    if (status === "REPLACEMENT") {
+        return "🔄";
+    }
+
+    if (status === "COMPLETED") {
+        return "✓";
+    }
+
+    return "🚌";
+
+}
+
+
+/* =========================
+   CREATE BUS ICON
+========================= */
+
+function createBusIcon(
+    status
+) {
+
+    return L.divIcon({
+
+        className: "",
+
+        html: `
+            <div class="bus-map-icon ${getMapStatusClass(status)}">
+                ${getMapStatusEmoji(status)}
+            </div>
+        `,
+
+        iconSize: [
+            42,
+            42
+        ],
+
+        iconAnchor: [
+            21,
+            21
+        ],
+
+        popupAnchor: [
+            0,
+            -22
+        ]
+
+    });
+
+}
+
+
+/* =========================
+   CREATE PASSENGER ICON
+========================= */
+
+function createPassengerIcon() {
+
+    return L.divIcon({
+
+        className: "",
+
+        html: `
+            <div class="passenger-map-icon">
+                👤
+            </div>
+        `,
+
+        iconSize: [
+            34,
+            34
+        ],
+
+        iconAnchor: [
+            17,
+            17
+        ],
+
+        popupAnchor: [
+            0,
+            -18
+        ]
+
+    });
+
+}
+
+
+/* =========================
+   GPS VALIDATION
+========================= */
+
+function validCoordinates(
+    latitude,
+    longitude
+) {
+
+    return (
+        typeof latitude === "number" &&
+        typeof longitude === "number" &&
+        Number.isFinite(latitude) &&
+        Number.isFinite(longitude) &&
+        latitude >= -90 &&
+        latitude <= 90 &&
+        longitude >= -180 &&
+        longitude <= 180
+    );
+
+}
+
+
+/* =========================
+   FORMAT GPS TIME
+========================= */
+
+function formatMapTime(
+    timestamp
+) {
+
+    if (!timestamp) {
+        return "--";
+    }
+
+    const date =
+        new Date(
+            Number(timestamp)
+        );
+
+    if (
+        Number.isNaN(
+            date.getTime()
+        )
+    ) {
+
+        return "--";
+
+    }
+
+    return date.toLocaleString();
+
+}
+
+
+/* =========================
+   GPS AGE
+========================= */
+
+function getGpsAge(
+    timestamp
+) {
+
+    if (!timestamp) {
+        return Infinity;
+    }
+
+    return (
+        Date.now() -
+        Number(timestamp)
+    );
+
+}
+
+
+/* =========================
+   STALE CHECK
+========================= */
+
+function isGpsStale(
+    bus
+) {
+
+    if (
+        !bus ||
+        bus.status !== "LIVE"
+    ) {
+
+        return false;
+
+    }
+
+    if (!bus.updatedAt) {
+        return true;
+    }
+
+    return (
+        getGpsAge(
+            bus.updatedAt
+        ) > STALE_GPS_TIME
+    );
+
+}
+
+
+/* =========================
+   BUS POPUP
+========================= */
+
+function createBusPopup(
+    busNumber,
+    bus
+) {
+
+    const status =
+        bus.status ||
+        "OFFLINE";
+
+    const hasGps =
+        validCoordinates(
+            Number(bus.latitude),
+            Number(bus.longitude)
+        );
+
+    const stale =
+        isGpsStale(
+            bus
+        );
+
+    let gpsText =
+        "GPS location unavailable";
+
+    if (hasGps) {
+
+        gpsText =
+            Number(bus.latitude).toFixed(6) +
+            ", " +
+            Number(bus.longitude).toFixed(6);
+
+    }
+
+
+    let staleHTML =
+        "";
+
+    if (stale) {
+
+        staleHTML = `
+            <div class="popup-stale">
+                ⚠️ GPS data is stale
+            </div>
+        `;
+
+    }
+
+
+    const accuracy =
+        bus.accuracy !== undefined &&
+        bus.accuracy !== null
+        ? Math.round(
+            Number(bus.accuracy)
+          ) + " meters"
+        : "--";
+
+
+    return `
+
+        <div class="popup-title">
+            🚍 ${busNumber}
+        </div>
+
+        <div class="popup-line">
+            <strong>Status:</strong>
+            <span class="popup-live">
+                ${status}
+            </span>
+        </div>
+
+        <div class="popup-line">
+            👨‍✈️
+            <strong>Driver:</strong>
+            ${bus.driverName || "No Driver"}
+        </div>
+
+        <div class="popup-line">
+            🛣️
+            <strong>Route:</strong>
+            ${bus.RouteName || "--"}
+        </div>
+
+        <div class="popup-line">
+            📍
+            <strong>Destination:</strong>
+            ${bus.destination || "--"}
+        </div>
+
+        <div class="popup-line">
+            🌐
+            <strong>GPS:</strong>
+            ${gpsText}
+        </div>
+
+        <div class="popup-line">
+            📡
+            <strong>Accuracy:</strong>
+            ${accuracy}
+        </div>
+
+        <div class="popup-line">
+            🕐
+            <strong>Last Update:</strong>
+            ${formatMapTime(bus.updatedAt)}
+        </div>
+
+        ${staleHTML}
+
+    `;
+
+}
+
+
+/* =========================
+   UPDATE BUS MARKER
+========================= */
+
+function updateAdminBusMarker(
+    busNumber,
+    bus
+) {
+
+    if (!adminMap) {
+        initializeAdminMap();
+    }
+
+
+    const latitude =
+        Number(
+            bus.latitude
+        );
+
+    const longitude =
+        Number(
+            bus.longitude
+        );
+
+
+    if (
+        !validCoordinates(
+            latitude,
+            longitude
+        )
+    ) {
+
+        if (
+            adminBusMarkers[
+                busNumber
+            ]
+        ) {
+
+            adminMap.removeLayer(
+                adminBusMarkers[
+                    busNumber
+                ]
+            );
+
+            delete adminBusMarkers[
+                busNumber
+            ];
+
+        }
+
+        return;
+
+    }
+
+
+    const position = [
+        latitude,
+        longitude
+    ];
+
+
+    const status =
+        bus.status ||
+        "OFFLINE";
+
+
+    const popup =
+        createBusPopup(
+            busNumber,
+            bus
+        );
+
+
+    if (
+        adminBusMarkers[
+            busNumber
+        ]
+    ) {
+
+        const marker =
+            adminBusMarkers[
+                busNumber
+            ];
+
+
+        animateAdminBusMarker(
+            busNumber,
+            marker,
+            position
+        );
+
+        marker.setIcon(
+            createBusIcon(
+                status
+            )
+        );
+
+        marker.bindPopup(
+            popup
+        );
+
+    }
+
+    else {
+
+        const marker =
+            L.marker(
+                position,
+                {
+                    icon:
+                        createBusIcon(
+                            status
+                        )
+                }
+            );
+
+
+        marker.bindPopup(
+            popup
+        );
+
+
+        marker.addTo(
+            adminMap
+        );
+
+
+        adminBusMarkers[
+            busNumber
+        ] =
+            marker;
+
+    }
+
+}
+
+
+/* =========================
+   REMOVE OLD BUS MARKERS
+========================= */
+
+function cleanupBusMarkers(
+    buses
+) {
+
+    Object.keys(
+        adminBusMarkers
+    ).forEach(
+        busNumber => {
+
+            if (
+                !buses ||
+                !buses[
+                    busNumber
+                ]
+            ) {
+
+                adminMap.removeLayer(
+                    adminBusMarkers[
+                        busNumber
+                    ]
+                );
+
+                delete adminBusMarkers[
+                    busNumber
+                ];
+
+            }
+
+        }
+    );
+
+}
+
+
+/* =========================
+   REFRESH MAP BUS SELECT
+========================= */
+
+function refreshAdminMapBusSelect(
+    buses
+) {
+
+    const currentValue =
+        adminMapBusSelect.value;
+
+
+    adminMapBusSelect.innerHTML = `
+        <option value="">
+            Select bus
+        </option>
+    `;
+
+
+    if (!buses) {
+        return;
+    }
+
+
+    Object.entries(
+        buses
+    ).forEach(
+        ([id, bus]) => {
+
+            const busNumber =
+                bus.busNumber ||
+                id;
+
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+
+            option.value =
+                busNumber;
+
+
+            option.innerText =
+                busNumber +
+                (
+                    bus.RouteName
+                    ? " — " +
+                      bus.RouteName
+                    : ""
+                );
+
+
+            adminMapBusSelect.appendChild(
+                option
+            );
+
+        }
+    );
+
+
+    if (currentValue) {
+
+        adminMapBusSelect.value =
+            currentValue;
+
+    }
+
+}
+
+
+/* =========================
+   RENDER ALL BUS MARKERS
+========================= */
+
+function renderAdminBusMap(
+    buses
+) {
+
+    initializeAdminMap();
+
+
+    refreshAdminMapBusSelect(
+        buses
+    );
+
+
+    cleanupBusMarkers(
+        buses
+    );
+
+
+    let total =
+        0;
+
+    let live =
+        0;
+
+    let gps =
+        0;
+
+    let stale =
+        0;
+
+
+    if (buses) {
+
+        Object.entries(
+            buses
+        ).forEach(
+            ([id, bus]) => {
+
+                total++;
+
+
+                const busNumber =
+                    bus.busNumber ||
+                    id;
+
+
+                if (
+                    bus.status ===
+                    "LIVE"
+                ) {
+
+                    live++;
+
+                }
+
+
+                if (
+                    validCoordinates(
+                        Number(
+                            bus.latitude
+                        ),
+                        Number(
+                            bus.longitude
+                        )
+                    )
+                ) {
+
+                    gps++;
+
+                    updateAdminBusMarker(
+                        busNumber,
+                        bus
+                    );
+
+
+                    if (
+                        isGpsStale(
+                            bus
+                        )
+                    ) {
+
+                        stale++;
+
+                    }
+
+                }
+
+            }
+        );
+
+    }
+
+
+    mapTotalBuses.innerText =
+        total;
+
+    mapLiveBuses.innerText =
+        live;
+
+    mapGpsBuses.innerText =
+        gps;
+
+    mapStaleBuses.innerText =
+        stale;
+
+
+    if (!buses) {
+
+        mapStatusMessage.innerText =
+            "No buses found in Firebase.";
+
+        return;
+
+    }
+
+
+    mapStatusMessage.innerText =
+        "🟢 Live bus data connected. " +
+        gps +
+        " bus location(s) visible on map.";
+
+}
+
+
+/* =========================
+   CENTER ALL BUSES
+========================= */
+
+function centerAllAdminBuses() {
+
+    if (!adminMap) {
+        initializeAdminMap();
+    }
+
+
+    const points = [];
+
+
+    Object.values(
+        adminBusMarkers
+    ).forEach(
+        marker => {
+
+            const position =
+                marker.getLatLng();
+
+            if (
+                position &&
+                Number.isFinite(
+                    position.lat
+                ) &&
+                Number.isFinite(
+                    position.lng
+                )
+            ) {
+
+                points.push([
+                    position.lat,
+                    position.lng
+                ]);
+
+            }
+
+        }
+    );
+
+
+    if (
+        points.length === 0
+    ) {
+
+        mapStatusMessage.innerText =
+            "⚠️ No bus GPS locations are currently available.";
+
+        return;
+
+    }
+
+
+    if (
+        points.length === 1
+    ) {
+
+        adminMap.setView(
+            points[0],
+            15,
+            {
+                animate: true
+            }
+        );
+
+        return;
+
+    }
+
+
+    const bounds =
+        L.latLngBounds(
+            points
+        );
+
+
+    adminMap.fitBounds(
+        bounds,
+        {
+            padding: [
+                50,
+                50
+            ],
+            maxZoom: 15,
+            animate: true
+        }
+    );
+
+}
+
+
+/* =========================
+   LOCATE SELECTED BUS
+========================= */
+
+adminMapBusSelect.addEventListener(
+    "change",
+    () => {
+
+        const busNumber =
+            adminMapBusSelect.value;
+
+
+        if (!busNumber) {
+            return;
+        }
+
+
+        const marker =
+            adminBusMarkers[
+                busNumber
+            ];
+
+
+        if (!marker) {
+
+            mapStatusMessage.innerText =
+                "⚠️ Selected bus does not currently have a valid GPS location.";
+
+            return;
+
+        }
+
+
+        const position =
+            marker.getLatLng();
+
+
+        adminMap.setView(
+            position,
+            16,
+            {
+                animate: true
+            }
+        );
+
+
+        marker.openPopup();
+
+    }
+);
+
+
+/* =========================
+   CENTER ALL BUTTON
+========================= */
+
+centerAllBusesButton.addEventListener(
+    "click",
+    () => {
+
+        centerAllAdminBuses();
+
+    }
+);
+
+
+/* =====================================================
+   PASSENGER MAP
+===================================================== */
+
+function createPassengerPopup(
+    passengerId,
+    passenger
+) {
+
+    const latitude =
+        Number(
+            passenger.latitude
+        );
+
+    const longitude =
+        Number(
+            passenger.longitude
+        );
+
+
+    return `
+
+        <div class="popup-title">
+            👤 Passenger
+        </div>
+
+        <div class="popup-line">
+            <strong>ID:</strong>
+            ${passengerId}
+        </div>
+
+        <div class="popup-line">
+            <strong>Location:</strong>
+            ${latitude.toFixed(6)},
+            ${longitude.toFixed(6)}
+        </div>
+
+        <div class="popup-line">
+            <strong>Accuracy:</strong>
+            ${
+                passenger.accuracy !== undefined
+                ? Math.round(
+                    Number(
+                        passenger.accuracy
+                    )
+                  ) + " meters"
+                : "--"
+            }
+        </div>
+
+        <div class="popup-line">
+            <strong>Status:</strong>
+            <span class="popup-passenger">
+                ${passenger.status || "PASSENGER_REPORTED"}
+            </span>
+        </div>
+
+        <div class="popup-line">
+            <strong>Last Update:</strong>
+            ${formatMapTime(
+                passenger.updatedAt
+            )}
+        </div>
+
+    `;
+
+}
+
+
+/* =========================
+   UPDATE PASSENGER MARKER
+========================= */
+
+function updatePassengerMarker(
+    passengerId,
+    passenger
+) {
+
+    if (!adminMap) {
+        initializeAdminMap();
+    }
+
+
+    const latitude =
+        Number(
+            passenger.latitude
+        );
+
+    const longitude =
+        Number(
+            passenger.longitude
+        );
+
+
+    if (
+        !validCoordinates(
+            latitude,
+            longitude
+        )
+    ) {
+
+        return;
+
+    }
+
+
+    const position = [
+        latitude,
+        longitude
+    ];
+
+
+    const popup =
+        createPassengerPopup(
+            passengerId,
+            passenger
+        );
+
+
+    if (
+        adminPassengerMarkers[
+            passengerId
+        ]
+    ) {
+
+        const marker =
+            adminPassengerMarkers[
+                passengerId
+            ];
+
+
+        marker.setLatLng(
+            position
+        );
+
+
+        marker.bindPopup(
+            popup
+        );
+
+    }
+
+    else {
+
+        const marker =
+            L.marker(
+                position,
+                {
+                    icon:
+                        createPassengerIcon()
+                }
+            );
+
+
+        marker.bindPopup(
+            popup
+        );
+
+
+        marker.addTo(
+            adminMap
+        );
+
+
+        adminPassengerMarkers[
+            passengerId
+        ] =
+            marker;
+
+    }
+
+}
+
+
+/* =========================
+   CLEAN PASSENGER MARKERS
+========================= */
+
+function cleanupPassengerMarkers(
+    passengers
+) {
+
+    Object.keys(
+        adminPassengerMarkers
+    ).forEach(
+        passengerId => {
+
+            if (
+                !passengers ||
+                !passengers[
+                    passengerId
+                ]
+            ) {
+
+                adminMap.removeLayer(
+                    adminPassengerMarkers[
+                        passengerId
+                    ]
+                );
+
+                delete adminPassengerMarkers[
+                    passengerId
+                ];
+
+            }
+
+        }
+    );
+
+}
+
+
+/* =========================
+   PASSENGER LISTENER
+========================= */
+
+onValue(
+    passengerLocationsRef,
+    snapshot => {
+
+        const passengers =
+            snapshot.val();
+
+
+        initializeAdminMap();
+
+
+        cleanupPassengerMarkers(
+            passengers
+        );
+
+
+        let count =
+            0;
+
+
+        if (passengers) {
+
+            Object.entries(
+                passengers
+            ).forEach(
+                ([passengerId, passenger]) => {
+
+                    if (
+                        validCoordinates(
+                            Number(
+                                passenger.latitude
+                            ),
+                            Number(
+                                passenger.longitude
+                            )
+                        )
+                    ) {
+
+                        count++;
+
+                        updatePassengerMarker(
+                            passengerId,
+                            passenger
+                        );
+
+                    }
+
+                }
+            );
+
+        }
+
+
+        mapPassengers.innerText =
+            count;
+
+    }
+);
+
+
+/* =====================================================
+   DRIVER ELEMENTS
+===================================================== */
+
+const driverName =
+    document.getElementById(
+        "driverName"
+    );
+
+const driverPhone =
+    document.getElementById(
+        "driverPhone"
+    );
+
+const driverBus =
+    document.getElementById(
+        "driverBus"
+    );
+
+const driverAvailability =
+    document.getElementById(
+        "driverAvailability"
+    );
+
+const saveDriverButton =
+    document.getElementById(
+        "saveDriverButton"
+    );
+
+const cancelEditButton =
+    document.getElementById(
+        "cancelEditButton"
+    );
+
+const driverMessage =
+    document.getElementById(
+        "driverMessage"
+    );
+
+const driverTable =
+    document.getElementById(
+        "driverTable"
+    );
+
+let editingDriverId =
+    null;
+
+
+/* =====================================================
+   BUS MANAGEMENT ELEMENTS
+===================================================== */
+
+const busNumberInput =
+    document.getElementById(
+        "busNumber"
+    );
+
+const busRouteName =
+    document.getElementById(
+        "busRouteName"
+    );
+
+const busDestination =
+    document.getElementById(
+        "busDestination"
+    );
+
+const busDriver =
+    document.getElementById(
+        "busDriver"
+    );
+
+const busStatus =
+    document.getElementById(
+        "busStatus"
+    );
+
+const saveBusButton =
+    document.getElementById(
+        "saveBusButton"
+    );
+
+const cancelBusEditButton =
+    document.getElementById(
+        "cancelBusEditButton"
+    );
+
+const busMessage =
+    document.getElementById(
+        "busMessage"
+    );
+
+const busManagementTable =
+    document.getElementById(
+        "busManagementTable"
+    );
+
+let editingBusId =
+    null;
+
+
+/* =====================================================
+   ROUTE ELEMENTS
+===================================================== */
+
+const routeBus =
+    document.getElementById(
+        "routeBus"
+    );
+
+const routeNameInput =
+    document.getElementById(
+        "routeNameInput"
+    );
+
+const routeDestinationInput =
+    document.getElementById(
+        "routeDestinationInput"
+    );
+
+const routeSelectedBus =
+    document.getElementById(
+        "routeSelectedBus"
+    );
+
+const routeStopCount =
+    document.getElementById(
+        "routeStopCount"
+    );
+
+const stopList =
+    document.getElementById(
+        "stopList"
+    );
+
+const addStopButton =
+    document.getElementById(
+        "addStopButton"
+    );
+
+const saveRouteButton =
+    document.getElementById(
+        "saveRouteButton"
+    );
+
+const clearRouteButton =
+    document.getElementById(
+        "clearRouteButton"
+    );
+
+const routeMessage =
+    document.getElementById(
+        "routeMessage"
+    );
+
+let routeStops =
+    [];
+
+
+/* =====================================================
+   MEMBER ELEMENTS
+===================================================== */
+
+const memberIdInput =
+    document.getElementById(
+        "memberId"
+    );
+
+const memberNameInput =
+    document.getElementById(
+        "memberName"
+    );
+
+const memberPhoneInput =
+    document.getElementById(
+        "memberPhone"
+    );
+
+const memberBus =
+    document.getElementById(
+        "memberBus"
+    );
+
+const memberStatus =
+    document.getElementById(
+        "memberStatus"
+    );
+
+const saveMemberButton =
+    document.getElementById(
+        "saveMemberButton"
+    );
+
+const cancelMemberEditButton =
+    document.getElementById(
+        "cancelMemberEditButton"
+    );
+
+const memberMessage =
+    document.getElementById(
+        "memberMessage"
+    );
+
+const memberTable =
+    document.getElementById(
+        "memberTable"
+    );
+
+let editingMemberId =
+    null;
+
+
+/* =====================================================
+   REPAIR ELEMENTS
+===================================================== */
+
+const repairBus =
+    document.getElementById(
+        "repairBus"
+    );
+
+const replacementBus =
+    document.getElementById(
+        "replacementBus"
+    );
+
+const replacementDriver =
+    document.getElementById(
+        "replacementDriver"
+    );
+
+const repairDestination =
+    document.getElementById(
+        "repairDestination"
+    );
+
+const assignButton =
+    document.getElementById(
+        "assignButton"
+    );
+
+const message =
+    document.getElementById(
+        "message"
+    );
+
+const repairList =
+    document.getElementById(
+        "repairList"
+    );
+
+
+/* =====================================================
+   MESSAGE FUNCTIONS
+===================================================== */
+
+function showDriverMessage(
+    text,
+    success = true
+) {
+
+    driverMessage.innerText =
+        text;
+
+    driverMessage.style.display =
+        "block";
+
+    driverMessage.className =
+        success
+        ? "message success-message"
+        : "message error-message";
+
+    setTimeout(
+        () => {
+            driverMessage.style.display =
+                "none";
+        },
+        3500
+    );
+
+}
+
+
+function showBusMessage(
+    text,
+    success = true
+) {
+
+    busMessage.innerText =
+        text;
+
+    busMessage.style.display =
+        "block";
+
+    busMessage.className =
+        success
+        ? "message success-message"
+        : "message error-message";
+
+    setTimeout(
+        () => {
+            busMessage.style.display =
+                "none";
+        },
+        3500
+    );
+
+}
+
+
+function showMemberMessage(
+    text,
+    success = true
+) {
+
+    memberMessage.innerText =
+        text;
+
+    memberMessage.style.display =
+        "block";
+
+    memberMessage.className =
+        success
+        ? "message success-message"
+        : "message error-message";
+
+    setTimeout(
+        () => {
+            memberMessage.style.display =
+                "none";
+        },
+        3500
+    );
+
+}
+
+
+function showRouteMessage(
+    text,
+    success = true
+) {
+
+    routeMessage.innerText =
+        text;
+
+    routeMessage.style.display =
+        "block";
+
+    routeMessage.className =
+        success
+        ? "message success-message"
+        : "message error-message";
+
+    setTimeout(
+        () => {
+            routeMessage.style.display =
+                "none";
+        },
+        3500
+    );
+
+}
+
+
+function showMessage(
+    text,
+    success = true
+) {
+
+    message.innerText =
+        text;
+
+    message.style.display =
+        "block";
+
+    message.className =
+        success
+        ? "message success-message"
+        : "message error-message";
+
+    setTimeout(
+        () => {
+            message.style.display =
+                "none";
+        },
+        3500
+    );
+
+}
+
+
+/* =====================================================
+   CLEAR FORMS
+===================================================== */
+
+function clearDriverForm() {
+
+    driverName.value =
+        "";
+
+    driverPhone.value =
+        "";
+
+    driverBus.value =
+        "";
+
+    driverAvailability.value =
+        "AVAILABLE";
+
+    editingDriverId =
+        null;
+
+    saveDriverButton.innerText =
+        "➕ Add Driver";
+
+    cancelEditButton.style.display =
+        "none";
+
+}
+
+
+function clearBusForm() {
+
+    busNumberInput.value =
+        "";
+
+    busRouteName.value =
+        "";
+
+    busDestination.value =
+        "";
+
+    busDriver.value =
+        "";
+
+    busStatus.value =
+        "AVAILABLE";
+
+    editingBusId =
+        null;
+
+    busNumberInput.disabled =
+        false;
+
+    saveBusButton.innerText =
+        "➕ Add Bus";
+
+    cancelBusEditButton.style.display =
+        "none";
+
+}
+
+
+function clearMemberForm() {
+
+    memberIdInput.value =
+        "";
+
+    memberNameInput.value =
+        "";
+
+    memberPhoneInput.value =
+        "";
+
+    memberBus.value =
+        "";
+
+    memberStatus.value =
+        "ACTIVE";
+
+    editingMemberId =
+        null;
+
+    memberIdInput.disabled =
+        false;
+
+    saveMemberButton.innerText =
+        "➕ Add Member";
+
+    cancelMemberEditButton.style.display =
+        "none";
+
+}
+
+
+/* =====================================================
+   ROUTE BUS SELECT
+===================================================== */
+
+function refreshRouteBusSelect(
+    buses
+) {
+
+    const currentValue =
+        routeBus.value;
+
+
+    routeBus.innerHTML = `
+        <option value="">
+            Select bus
+        </option>
+    `;
+
+
+    if (!buses) {
+        return;
+    }
+
+
+    Object.entries(
+        buses
+    ).forEach(
+        ([id, bus]) => {
+
+            const busNumber =
+                bus.busNumber ||
+                id;
+
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+
+            option.value =
+                busNumber;
+
+
+            option.innerText =
+                busNumber +
+                (
+                    bus.RouteName
+                    ? " — " +
+                      bus.RouteName
+                    : ""
+                );
+
+
+            routeBus.appendChild(
+                option
+            );
+
+        }
+    );
+
+
+    if (currentValue) {
+
+        routeBus.value =
+            currentValue;
+
+    }
+
+}
+
+
+/* =====================================================
+   LOAD BUS OPTIONS
+===================================================== */
+
+function refreshBusSelects(
+    buses
+) {
+
+    const currentDriverBus =
+        driverBus.value;
+
+    const currentRepairBus =
+        repairBus.value;
+
+    const currentReplacementBus =
+        replacementBus.value;
+
+    const currentMemberBus =
+        memberBus.value;
+
+
+    driverBus.innerHTML = `
+        <option value="">
+            Select bus
+        </option>
+    `;
+
+    repairBus.innerHTML = `
+        <option value="">
+            Select bus
+        </option>
+    `;
+
+    replacementBus.innerHTML = `
+        <option value="">
+            Select replacement
+        </option>
+    `;
+
+    memberBus.innerHTML = `
+        <option value="">
+            No Bus Assigned
+        </option>
+    `;
+
+
+    refreshRouteBusSelect(
+        buses
+    );
+
+
+    if (!buses) {
+        return;
+    }
+
+
+    Object.entries(
+        buses
+    ).forEach(
+        ([id, bus]) => {
+
+            const busNumber =
+                bus.busNumber ||
+                id;
+
+
+            const driverOption =
+                document.createElement(
+                    "option"
+                );
+
+            driverOption.value =
+                busNumber;
+
+            driverOption.innerText =
+                busNumber;
+
+            driverBus.appendChild(
+                driverOption
+            );
+
+
+            const repairOption =
+                document.createElement(
+                    "option"
+                );
+
+            repairOption.value =
+                busNumber;
+
+            repairOption.innerText =
+                busNumber;
+
+            repairBus.appendChild(
+                repairOption
+            );
+
+
+            const replacementOption =
+                document.createElement(
+                    "option"
+                );
+
+            replacementOption.value =
+                busNumber;
+
+            replacementOption.innerText =
+                busNumber;
+
+            replacementBus.appendChild(
+                replacementOption
+            );
+
+
+            const memberOption =
+                document.createElement(
+                    "option"
+                );
+
+            memberOption.value =
+                busNumber;
+
+            memberOption.innerText =
+                busNumber +
+                (
+                    bus.destination
+                    ? " — " +
+                      bus.destination
+                    : ""
+                );
+
+            memberBus.appendChild(
+                memberOption
+            );
+
+        }
+    );
+
+
+    if (currentDriverBus) {
+        driverBus.value =
+            currentDriverBus;
+    }
+
+    if (currentRepairBus) {
+        repairBus.value =
+            currentRepairBus;
+    }
+
+    if (currentReplacementBus) {
+        replacementBus.value =
+            currentReplacementBus;
+    }
+
+    if (currentMemberBus) {
+        memberBus.value =
+            currentMemberBus;
+    }
+
+}
+
+
+/* =====================================================
+   DRIVER SELECT
+===================================================== */
+
+function refreshDriverSelect(
+    drivers
+) {
+
+    const currentValue =
+        busDriver.value;
+
+
+    busDriver.innerHTML = `
+        <option value="">
+            No Driver
+        </option>
+    `;
+
+
+    if (!drivers) {
+        return;
+    }
+
+
+    Object.entries(
+        drivers
+    ).forEach(
+        ([id, driver]) => {
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+
+            option.value =
+                id;
+
+
+            option.innerText =
+                (
+                    driver.name ||
+                    "Unnamed Driver"
+                ) +
+                (
+                    driver.assignedBus
+                    ? " — " +
+                      driver.assignedBus
+                    : ""
+                );
+
+
+            busDriver.appendChild(
+                option
+            );
+
+        }
+    );
+
+
+    if (currentValue) {
+        busDriver.value =
+            currentValue;
+    }
+
+}
+
+
+/* =====================================================
+   GPS AGE REFRESH
+===================================================== */
+
+setInterval(() => {
+    if (latestDrivers) {
+        renderDriverTable(latestDrivers);
+    }
+}, 10000);
+
+
+/* =====================================================
+   FIREBASE LISTENERS
+===================================================== */
+
+onValue(
+    driversRef,
+    snapshot => {
+
+        latestDrivers =
+            snapshot.val();
+
+        refreshDriverSelect(
+            latestDrivers
+        );
+
+        renderDriverTable(
+            latestDrivers
+        );
+
+        if (latestBuses) {
+
+            renderBusManagementTable(
+                latestBuses,
+                latestDrivers
+            );
+
+        }
+
+    }
+);
+
+
+onValue(
+    busesRef,
+    snapshot => {
+
+        latestBuses =
+            snapshot.val();
+
+
+        refreshBusSelects(
+            latestBuses
+        );
+
+
+        renderBusManagementTable(
+            latestBuses,
+            latestDrivers
+        );
+
+
+        renderBusStatusTable(
+            latestBuses
+        );
+
+
+        renderAdminBusMap(
+            latestBuses
+        );
+
+
+        if (routeBus.value) {
+
+            loadRouteForBus(
+                routeBus.value
+            );
+
+        }
+
+    }
+);
+
+
+onValue(
+    usersRef,
+    snapshot => {
+
+        latestUsers =
+            snapshot.val();
+
+        renderMemberTable(
+            latestUsers
+        );
+
+    }
+);
+
+
+/* =====================================================
+   DRIVER SAVE
+===================================================== */
+
+saveDriverButton.addEventListener(
+    "click",
+    async () => {
+
+        const name =
+            driverName.value.trim();
+
+        const phone =
+            driverPhone.value.trim();
+
+        const bus =
+            driverBus.value;
+
+        const availability =
+            driverAvailability.value;
+
+
+        if (!name) {
+
+            showDriverMessage(
+                "Please enter driver name.",
+                false
+            );
+
+            return;
+
+        }
+
+
+        if (!phone) {
+
+            showDriverMessage(
+                "Please enter driver phone number.",
+                false
+            );
+
+            return;
+
+        }
+
+
+        if (!/^[0-9]{10}$/.test(phone)) {
+
+            showDriverMessage(
+                "Phone number must contain 10 digits.",
+                false
+            );
+
+            return;
+
+        }
+
+
+        if (!bus) {
+
+            showDriverMessage(
+                "Please select assigned bus.",
+                false
+            );
+
+            return;
+
+        }
+
+
+        const driverId =
+            editingDriverId ||
+            "DRIVER-" + Date.now();
+
+
+        try {
+
+            await set(
+                ref(
+                    database,
+                    "drivers/" +
+                    driverId
+                ),
+                {
+                    driverId:
+                        driverId,
+
+                    name:
+                        name,
+
+                    phone:
+                        phone,
+
+                    assignedBus:
+                        bus,
+
+                    availability:
+                        availability,
+
+                    updatedAt:
+                        Date.now()
+                }
+            );
+
+
+            await update(
+                ref(
+                    database,
+                    "buses/" +
+                    bus
+                ),
+                {
+                    driverId:
+                        driverId,
+
+                    driverName:
+                        name,
+
+                    driverPhone:
+                        phone,
+
+                    updatedAt:
+                        Date.now()
+                }
+            );
+
+
+            showDriverMessage(
+                editingDriverId
+                ? "✅ Driver updated successfully."
+                : "✅ Driver added successfully."
+            );
+
+
+            clearDriverForm();
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Driver save error:",
+                error
+            );
+
+            showDriverMessage(
+                "❌ Failed to save driver.\n" +
+                error.message,
+                false
+            );
+
+        }
+
+    }
+);
+
+
+/* =====================================================
+   CANCEL DRIVER
+===================================================== */
+
+cancelEditButton.addEventListener(
+    "click",
+    clearDriverForm
+);
+
+
+/* =====================================================
+   DRIVER TABLE
+===================================================== */
+
+function renderDriverTable(
+    drivers
+) {
+
+    driverTable.innerHTML =
+        "";
+
+
+    if (!drivers) {
+
+        driverTable.innerHTML = `
+            <tr>
+                <td colspan="5" class="empty">
+                    No drivers added yet.
+                </td>
+            </tr>
+        `;
+
+
+        document.getElementById(
+            "activeDrivers"
+        ).innerText =
+            "0";
+
+        return;
+
+    }
+
+
+    const entries =
+        Object.entries(
+            drivers
+        );
+
+
+    let availableCount =
+        0;
+
+
+    entries.forEach(
+        ([id, driver]) => {
+
+            if (
+                driver.availability ===
+                "AVAILABLE"
+            ) {
+
+                availableCount++;
+
+            }
+
+
+            const row =
+                document.createElement(
+                    "tr"
+                );
+
+
+            const status =
+                driver.availability ||
+                "OFFLINE";
+
+            const gpsLive =
+                driver.gpsStatus === "LIVE" &&
+                driver.lastSeen &&
+                (Date.now() - Number(driver.lastSeen)) < 60000;
+
+            const statusHTML =
+                gpsLive
+                ? `
+                    <span class="driver-status">
+                        🟢 LIVE GPS
+                    </span>
+                `
+                : status === "AVAILABLE"
+                ? `
+                    <span class="driver-status">
+                        🟢 AVAILABLE
+                    </span>
+                `
+                : `
+                    <span class="driver-status driver-offline">
+                        ⚫ OFFLINE
+                    </span>
+                `;
+
+
+            row.innerHTML = `
+
+                <td>
+                    👨‍✈️
+                    <strong>
+                        ${driver.name || "--"}
+                    </strong>
+                </td>
+
+                <td>
+                    📱 ${driver.phone || "--"}
+                </td>
+
+                <td>
+                    🚍 ${driver.assignedBus || driver.currentBus || "--"}
+                    ${driver.destination ? `<br><small>📍 ${driver.destination}</small>` : ""}
+                </td>
+
+                <td>
+                    ${statusHTML}
+                </td>
+
+                <td>
+
+                    <div class="action-buttons">
+
+                        <button
+                            class="edit-button edit-driver-button"
+                            data-id="${id}"
+                        >
+                            ✏️ Edit
+                        </button>
+
+                        <button
+                            class="delete-button delete-driver-button"
+                            data-id="${id}"
+                        >
+                            🗑️ Delete
+                        </button>
+
+                    </div>
+
+                </td>
+
+            `;
+
+
+            driverTable.appendChild(
+                row
+            );
+
+        }
+    );
+
+
+    document.getElementById(
+        "activeDrivers"
+    ).innerText =
+        availableCount;
+
+
+    document
+        .querySelectorAll(
+            ".edit-driver-button"
+        )
+        .forEach(
+            button => {
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        editDriver(
+                            button.dataset.id,
+                            drivers
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+
+    document
+        .querySelectorAll(
+            ".delete-driver-button"
+        )
+        .forEach(
+            button => {
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        deleteDriver(
+                            button.dataset.id
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+}
+
+
+/* =====================================================
+   EDIT DRIVER
+===================================================== */
+
+function editDriver(
+    driverId,
+    drivers
+) {
+
+    const driver =
+        drivers[
+            driverId
+        ];
+
+
+    if (!driver) {
+        return;
+    }
+
+
+    driverName.value =
+        driver.name || "";
+
+    driverPhone.value =
+        driver.phone || "";
+
+    driverBus.value =
+        driver.assignedBus || "";
+
+    driverAvailability.value =
+        driver.availability ||
+        "AVAILABLE";
+
+
+    editingDriverId =
+        driverId;
+
+
+    saveDriverButton.innerText =
+        "💾 Update Driver";
+
+
+    cancelEditButton.style.display =
+        "block";
+
+
+    driverName.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+    });
+
+}
+
+
+/* =====================================================
+   DELETE DRIVER
+===================================================== */
+
+async function deleteDriver(
+    driverId
+) {
+
+    if (
+        !confirm(
+            "Are you sure you want to delete this driver?"
+        )
+    ) {
+
+        return;
+
+    }
+
+
+    try {
+
+        await set(
+            ref(
+                database,
+                "drivers/" +
+                driverId
+            ),
+            null
+        );
+
+
+        showDriverMessage(
+            "✅ Driver deleted successfully."
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            error
+        );
+
+        showDriverMessage(
+            "❌ Failed to delete driver.",
+            false
+        );
+
+    }
+
+}
+saveBusButton.addEventListener(
+    "click",
+    async () => {
+
+        let busNumber =
+            busNumberInput.value
+                .trim()
+                .toUpperCase();
+
+        const routeName =
+            busRouteName.value.trim();
+
+        const destination =
+            busDestination.value.trim();
+
+        const selectedDriverId =
+            busDriver.value;
+
+        const status =
+            busStatus.value;
+
+
+        if (!busNumber) {
+            showBusMessage(
+                "Please enter bus number.",
+                false
+            );
+            return;
+        }
+
+
+        if (/^[0-9]+$/.test(busNumber)) {
+            busNumber =
+                "BUS-" + busNumber;
+        }
+
+
+        if (!/^BUS-[A-Z0-9-]+$/.test(busNumber)) {
+            showBusMessage(
+                "Bus number must look like BUS-101.",
+                false
+            );
+            return;
+        }
+
+
+        if (!routeName) {
+            showBusMessage(
+                "Please enter route name.",
+                false
+            );
+            return;
+        }
+
+
+        if (!destination) {
+            showBusMessage(
+                "Please enter destination.",
+                false
+            );
+            return;
+        }
+
+
+        const busId =
+            editingBusId ||
+            busNumber;
+
+
+        if (
+            !editingBusId &&
+            latestBuses &&
+            latestBuses[busNumber]
+        ) {
+            showBusMessage(
+                "❌ This bus already exists.",
+                false
+            );
+            return;
+        }
+
+
+        try {
+
+            let driverData = null;
+
+
+            if (
+                selectedDriverId &&
+                latestDrivers &&
+                latestDrivers[selectedDriverId]
+            ) {
+
+                driverData =
+                    latestDrivers[
+                        selectedDriverId
+                    ];
+
+            }
+
+
+            /*
+             * IMPORTANT:
+             * Only update admin-controlled fields.
+             * Do NOT overwrite latitude,
+             * longitude, gpsAccuracy,
+             * startTime, etc.
+             */
+
+            const busData = {
+
+                busNumber:
+                    busId,
+
+                RouteName:
+                    routeName,
+
+                destination:
+                    destination,
+
+                driverId:
+                    selectedDriverId || "",
+
+                driverName:
+                    driverData
+                        ? driverData.name
+                        : "",
+
+                driverPhone:
+                    driverData
+                        ? driverData.phone
+                        : "",
+
+                status:
+                    status,
+
+                updatedAt:
+                    Date.now()
+
+            };
+
+
+            /*
+             * EDIT EXISTING BUS
+             */
+
+            if (editingBusId) {
+
+                await update(
+                    ref(
+                        database,
+                        "buses/" +
+                        editingBusId
+                    ),
+                    busData
+                );
+
+            }
+
+            /*
+             * CREATE NEW BUS
+             */
+
+            else {
+
+                await set(
+                    ref(
+                        database,
+                        "buses/" +
+                        busId
+                    ),
+                    {
+                        ...busData,
+
+                        latitude:
+                            null,
+
+                        longitude:
+                            null,
+
+                        gpsAccuracy:
+                            null,
+
+                        startTime:
+                            null,
+
+                        arrivalTime:
+                            null,
+
+                        durationSeconds:
+                            null
+                    }
+                );
+
+            }
+
+
+            /*
+             * Update selected driver's assignment
+             */
+
+            if (
+                selectedDriverId &&
+                driverData
+            ) {
+
+                await update(
+                    ref(
+                        database,
+                        "drivers/" +
+                        selectedDriverId
+                    ),
+                    {
+                        assignedBus:
+                            busId,
+
+                        updatedAt:
+                            Date.now()
+                    }
+                );
+
+            }
+
+
+            /*
+             * Clear previous driver assignment
+             * if the bus was reassigned.
+             */
+
+            if (
+                editingBusId &&
+                latestDrivers
+            ) {
+
+                const previousBus =
+                    latestBuses
+                    ? latestBuses[
+                        editingBusId
+                    ]
+                    : null;
+
+                if (
+                    previousBus &&
+                    previousBus.driverId &&
+                    previousBus.driverId !==
+                    selectedDriverId
+                ) {
+
+                    await update(
+                        ref(
+                            database,
+                            "drivers/" +
+                            previousBus.driverId
+                        ),
+                        {
+                            assignedBus:
+                                "",
+
+                            updatedAt:
+                                Date.now()
+                        }
+                    );
+
+                }
+
+            }
+
+
+            showBusMessage(
+                editingBusId
+                    ? "✅ Bus updated successfully."
+                    : "✅ Bus added successfully."
+            );
+
+
+            clearBusForm();
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Bus save error:",
+                error
+            );
+
+            showBusMessage(
+                "❌ Failed to save bus.\n" +
+                error.message,
+                false
+            );
+
+        }
+
+    }
+);
+/* =====================================================
+   CANCEL BUS
+===================================================== */
+
+cancelBusEditButton.addEventListener(
+    "click",
+    clearBusForm
+);
+
+
+/* =====================================================
+   BUS MANAGEMENT TABLE
+===================================================== */
+
+function renderBusManagementTable(
+    buses,
+    drivers
+) {
+
+    busManagementTable.innerHTML =
+        "";
+
+
+    if (!buses) {
+
+        busManagementTable.innerHTML = `
+            <tr>
+                <td colspan="6" class="empty">
+                    No buses added yet.
+                </td>
+            </tr>
+        `;
+
+        return;
+
+    }
+
+
+    Object.entries(
+        buses
+    ).forEach(
+        ([id, bus]) => {
+
+            const busNumber =
+                bus.busNumber ||
+                id;
+
+            const status =
+                bus.status ||
+                "OFFLINE";
+
+
+            let statusHTML = `
+                <span class="bus-status bus-offline">
+                    ⚫ ${status}
+                </span>
+            `;
+
+
+            if (
+                status === "AVAILABLE"
+            ) {
+
+                statusHTML = `
+                    <span class="bus-status">
+                        🟢 AVAILABLE
+                    </span>
+                `;
+
+            }
+
+            else if (
+                status === "LIVE"
+            ) {
+
+                statusHTML = `
+                    <span class="bus-status bus-live">
+                        🟢 LIVE
+                    </span>
+                `;
+
+            }
+
+            else if (
+                status === "REPAIR"
+            ) {
+
+                statusHTML = `
+                    <span class="bus-status bus-repair">
+                        🔧 REPAIR
+                    </span>
+                `;
+
+            }
+
+            else if (
+                status === "REPLACEMENT"
+            ) {
+
+                statusHTML = `
+                    <span class="bus-status bus-replacement">
+                        🚍 REPLACEMENT
+                    </span>
+                `;
+
+            }
+
+            else if (
+                status === "COMPLETED"
+            ) {
+
+                statusHTML = `
+                    <span class="bus-status bus-completed">
+                        ✅ COMPLETED
+                    </span>
+                `;
+
+            }
+
+
+            const row =
+                document.createElement(
+                    "tr"
+                );
+
+
+            row.innerHTML = `
+
+                <td>
+                    🚍
+                    <strong>
+                        ${busNumber}
+                    </strong>
+                </td>
+
+                <td>
+                    🛣️
+                    ${bus.RouteName || "--"}
+                </td>
+
+                <td>
+                    📍
+                    ${bus.destination || "--"}
+                </td>
+
+                <td>
+                    👨‍✈️
+                    ${bus.driverName || "No Driver"}
+                </td>
+
+                <td>
+                    ${statusHTML}
+                </td>
+
+                <td>
+
+                    <div class="action-buttons">
+
+                        <button
+                            class="edit-bus-button edit-button"
+                            data-id="${id}"
+                        >
+                            ✏️ Edit
+                        </button>
+
+                        <button
+                            class="delete-bus-button delete-button"
+                            data-id="${id}"
+                        >
+                            🗑️ Delete
+                        </button>
+
+                    </div>
+
+                </td>
+
+            `;
+
+
+            busManagementTable.appendChild(
+                row
+            );
+
+        }
+    );
+
+
+    document
+        .querySelectorAll(
+            ".edit-bus-button"
+        )
+        .forEach(
+            button => {
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        editBus(
+                            button.dataset.id,
+                            buses,
+                            drivers
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+
+    document
+        .querySelectorAll(
+            ".delete-bus-button"
+        )
+        .forEach(
+            button => {
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        deleteBus(
+                            button.dataset.id
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+}
+
+
+/* =====================================================
+   EDIT BUS
+===================================================== */
+
+function editBus(
+    busId,
+    buses,
+    drivers
+) {
+
+    const bus =
+        buses[
+            busId
+        ];
+
+
+    if (!bus) {
+        return;
+    }
+
+
+    busNumberInput.value =
+        bus.busNumber ||
+        busId;
+
+    busNumberInput.disabled =
+        true;
+
+    busRouteName.value =
+        bus.RouteName ||
+        "";
+
+    busDestination.value =
+        bus.destination ||
+        "";
+
+
+    busStatus.value =
+        (
+            bus.status === "LIVE" ||
+            bus.status === "COMPLETED" ||
+            bus.status === "REPAIR" ||
+            bus.status === "REPLACEMENT"
+        )
+        ? bus.status
+        : "AVAILABLE";
+
+
+    busDriver.value =
+        "";
+
+
+    if (drivers) {
+
+        const driverEntry =
+            Object.entries(
+                drivers
+            )
+            .find(
+                ([id, driver]) =>
+                    driver.name ===
+                    bus.driverName
+            );
+
+
+        if (driverEntry) {
+
+            busDriver.value =
+                driverEntry[0];
+
+        }
+
+    }
+
+
+    editingBusId =
+        busId;
+
+
+    saveBusButton.innerText =
+        "💾 Update Bus";
+
+
+    cancelBusEditButton.style.display =
+        "block";
+
+
+    busNumberInput.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+    });
+
+}
+
+
+/* =====================================================
+   DELETE BUS
+===================================================== */
+
+async function deleteBus(
+    busId
+) {
+
+    const bus =
+        latestBuses
+        ? latestBuses[busId]
+        : null;
+
+
+    const busNumber =
+        bus
+        ? (
+            bus.busNumber ||
+            busId
+        )
+        : busId;
+
+
+    if (
+        !confirm(
+            "Delete " +
+            busNumber +
+            "?\n\n" +
+            "This will remove the bus record from Firebase."
+        )
+    ) {
+
+        return;
+
+    }
+
+
+    try {
+
+        await set(
+            ref(
+                database,
+                "buses/" +
+                busId
+            ),
+            null
+        );
+
+
+        if (latestDrivers) {
+
+            Object.entries(
+                latestDrivers
+            )
+            .forEach(
+                async ([id, driver]) => {
+
+                    if (
+                        driver.assignedBus ===
+                        busNumber
+                    ) {
+
+                        await update(
+                            ref(
+                                database,
+                                "drivers/" +
+                                id
+                            ),
+                            {
+                                assignedBus:
+                                    "",
+
+                                updatedAt:
+                                    Date.now()
+                            }
+                        );
+
+                    }
+
+                }
+            );
+
+        }
+
+
+        showBusMessage(
+            "✅ " +
+            busNumber +
+            " deleted successfully."
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            error
+        );
+
+        showBusMessage(
+            "❌ Failed to delete bus.",
+            false
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   ROUTE MANAGEMENT
+===================================================== */
+
+routeBus.addEventListener(
+    "change",
+    () => {
+
+        loadRouteForBus(
+            routeBus.value
+        );
+
+    }
+);
+
+
+function loadRouteForBus(
+    busId
+) {
+
+    routeStops =
+        [];
+
+    routeStopCount.innerText =
+        "0";
+
+
+    if (!busId) {
+
+        routeSelectedBus.innerText =
+            "--";
+
+        routeNameInput.value =
+            "";
+
+        routeDestinationInput.value =
+            "";
+
+        stopList.innerHTML = `
+            <div class="route-empty">
+                Select a bus to load its stops.
+            </div>
+        `;
+
+        return;
+
+    }
+
+
+    if (
+        !latestBuses ||
+        !latestBuses[busId]
+    ) {
+
+        routeSelectedBus.innerText =
+            busId;
+
+        routeNameInput.value =
+            "";
+
+        routeDestinationInput.value =
+            "";
+
+        stopList.innerHTML = `
+            <div class="route-empty">
+                Bus data not found.
+            </div>
+        `;
+
+        return;
+
+    }
+
+
+    const bus =
+        latestBuses[busId];
+
+
+    routeSelectedBus.innerText =
+        bus.busNumber ||
+        busId;
+
+
+    routeNameInput.value =
+        bus.RouteName ||
+        "";
+
+    routeDestinationInput.value =
+        bus.destination ||
+        "";
+
+
+    const stops =
+        bus.stops;
+
+
+    if (
+        stops &&
+        typeof stops === "object"
+    ) {
+
+        routeStops =
+            Object.entries(
+                stops
+            )
+            .sort(
+                (a, b) =>
+                    Number(a[0]) -
+                    Number(b[0])
+            )
+            .map(
+                ([number, name]) =>
+                    String(
+                        name || ""
+                    )
+            );
+
+    }
+
+    else {
+
+        routeStops =
+            [];
+
+    }
+
+
+    renderRouteStops();
+
+}
+
+
+function renderRouteStops() {
+
+    stopList.innerHTML =
+        "";
+
+    routeStopCount.innerText =
+        routeStops.length;
+
+
+    if (
+        routeStops.length === 0
+    ) {
+
+        stopList.innerHTML = `
+            <div class="route-empty">
+                No stops added yet.
+                Click "Add Stop" to create the first stop.
+            </div>
+        `;
+
+        return;
+
+    }
+
+
+    routeStops.forEach(
+        (stop, index) => {
+
+            const row =
+                document.createElement(
+                    "div"
+                );
+
+            row.className =
+                "stop-row";
+
+
+            const number =
+                document.createElement(
+                    "div"
+                );
+
+            number.className =
+                "stop-number";
+
+            number.innerText =
+                index + 1;
+
+
+            const input =
+                document.createElement(
+                    "input"
+                );
+
+            input.type =
+                "text";
+
+            input.className =
+                "stop-name-input";
+
+            input.placeholder =
+                "Enter stop name";
+
+            input.value =
+                stop;
+
+
+            input.addEventListener(
+                "input",
+                () => {
+
+                    routeStops[index] =
+                        input.value;
+
+                }
+            );
+
+
+            const actions =
+                document.createElement(
+                    "div"
+                );
+
+            actions.className =
+                "stop-actions";
+
+
+            const upButton =
+                document.createElement(
+                    "button"
+                );
+
+            upButton.type =
+                "button";
+
+            upButton.className =
+                "stop-action-button move-stop-button";
+
+            upButton.innerText =
+                "⬆️";
+
+            upButton.disabled =
+                index === 0;
+
+            upButton.addEventListener(
+                "click",
+                () => {
+
+                    moveStop(
+                        index,
+                        -1
+                    );
+
+                }
+            );
+
+
+            const downButton =
+                document.createElement(
+                    "button"
+                );
+
+            downButton.type =
+                "button";
+
+            downButton.className =
+                "stop-action-button move-stop-button";
+
+            downButton.innerText =
+                "⬇️";
+
+            downButton.disabled =
+                index ===
+                routeStops.length - 1;
+
+            downButton.addEventListener(
+                "click",
+                () => {
+
+                    moveStop(
+                        index,
+                        1
+                    );
+
+                }
+            );
+
+
+            const deleteButton =
+                document.createElement(
+                    "button"
+                );
+
+            deleteButton.type =
+                "button";
+
+            deleteButton.className =
+                "stop-action-button delete-stop-button";
+
+            deleteButton.innerText =
+                "🗑️";
+
+            deleteButton.addEventListener(
+                "click",
+                () => {
+
+                    deleteStop(
+                        index
+                    );
+
+                }
+            );
+
+
+            actions.appendChild(
+                upButton
+            );
+
+            actions.appendChild(
+                downButton
+            );
+
+            actions.appendChild(
+                deleteButton
+            );
+
+
+            row.appendChild(
+                number
+            );
+
+            row.appendChild(
+                input
+            );
+
+            row.appendChild(
+                actions
+            );
+
+
+            stopList.appendChild(
+                row
+            );
+
+        }
+    );
+
+}
+
+
+addStopButton.addEventListener(
+    "click",
+    () => {
+
+        routeStops.push(
+            ""
+        );
+
+        renderRouteStops();
+
+
+        const inputs =
+            document.querySelectorAll(
+                ".stop-name-input"
+            );
+
+
+        if (inputs.length > 0) {
+
+            inputs[
+                inputs.length - 1
+            ].focus();
+
+        }
+
+    }
+);
+
+
+function moveStop(
+    index,
+    direction
+) {
+
+    const newIndex =
+        index + direction;
+
+
+    if (
+        newIndex < 0 ||
+        newIndex >= routeStops.length
+    ) {
+
+        return;
+
+    }
+
+
+    const temporary =
+        routeStops[index];
+
+
+    routeStops[index] =
+        routeStops[newIndex];
+
+    routeStops[newIndex] =
+        temporary;
+
+
+    renderRouteStops();
+
+}
+
+
+function deleteStop(
+    index
+) {
+
+    const stopName =
+        routeStops[index] ||
+        "this stop";
+
+
+    if (
+        !confirm(
+            "Delete " +
+            stopName +
+            "?"
+        )
+    ) {
+
+        return;
+
+    }
+
+
+    routeStops.splice(
+        index,
+        1
+    );
+
+
+    renderRouteStops();
+
+}
+
+
+saveRouteButton.addEventListener(
+    "click",
+    async () => {
+
+        const busId =
+            routeBus.value;
+
+
+        if (!busId) {
+
+            showRouteMessage(
+                "Please select a bus.",
+                false
+            );
+
+            return;
+
+        }
+
+
+        if (
+            !latestBuses ||
+            !latestBuses[busId]
+        ) {
+
+            showRouteMessage(
+                "Selected bus was not found.",
+                false
+            );
+
+            return;
+
+        }
+
+
+        const routeName =
+            routeNameInput.value.trim();
+
+        const destination =
+            routeDestinationInput.value.trim();
+
+
+        if (!routeName) {
+
+            showRouteMessage(
+                "Please enter route name.",
+                false
+            );
+
+            return;
+
+        }
+
+
+        if (!destination) {
+
+            showRouteMessage(
+                "Please enter destination.",
+                false
+            );
+
+            return;
+
+        }
+
+
+        const stopInputs =
+            document.querySelectorAll(
+                ".stop-name-input"
+            );
+
+
+        const cleanedStops =
+            [];
+
+
+        stopInputs.forEach(
+            input => {
+
+                const value =
+                    input.value.trim();
+
+
+                if (value) {
+
+                    cleanedStops.push(
+                        value
+                    );
+
+                }
+
+            }
+        );
+
+
+        if (
+            cleanedStops.length === 0
+        ) {
+
+            showRouteMessage(
+                "Please add at least one stop.",
+                false
+            );
+
+            return;
+
+        }
+
+
+        const stopsObject =
+            {};
+
+
+        cleanedStops.forEach(
+            (stop, index) => {
+
+                stopsObject[
+                    String(index + 1)
+                ] =
+                    stop;
+
+            }
+        );
+
+
+        try {
+
+            await update(
+                ref(
+                    database,
+                    "buses/" +
+                    busId
+                ),
+                {
+                    RouteName:
+                        routeName,
+
+                    destination:
+                        destination,
+
+                    stops:
+                        stopsObject,
+
+                    updatedAt:
+                        Date.now()
+                }
+            );
+
+
+            routeStops =
+                cleanedStops;
+
+
+            renderRouteStops();
+
+
+            showRouteMessage(
+                "✅ Route and stops saved successfully."
+            );
+
+        }
+
+        catch (error) {
+
+            console.error(
+                error
+            );
+
+            showRouteMessage(
+                "❌ Failed to save route.\n" +
+                error.message,
+                false
+            );
+
+        }
+
+    }
+);
+
+
+clearRouteButton.addEventListener(
+    "click",
+    () => {
+
+        if (!routeBus.value) {
+
+            routeStops =
+                [];
+
+            renderRouteStops();
+
+            return;
+
+        }
+
+
+        loadRouteForBus(
+            routeBus.value
+        );
+
+
+        showRouteMessage(
+            "↩️ Route reloaded from Firebase."
+        );
+
+    }
+);
+
+
+/* =====================================================
+   MEMBER MANAGEMENT
+===================================================== */
+
+saveMemberButton.addEventListener(
+    "click",
+    async () => {
+
+        let memberId =
+            memberIdInput.value.trim();
+
+        const name =
+            memberNameInput.value.trim();
+
+        const phone =
+            memberPhoneInput.value.trim();
+
+        const assignedBus =
+            memberBus.value;
+
+        const status =
+            memberStatus.value;
+
+
+        if (!memberId) {
+
+            showMemberMessage(
+                "Please enter a Member ID.",
+                false
+            );
+
+            return;
+
+        }
+
+
+        memberId =
+            memberId.replace(
+                /[.#$[\]]/g,
+                ""
+            );
+
+
+        if (!memberId) {
+
+            showMemberMessage(
+                "Invalid Member ID.",
+                false
+            );
+
+            return;
+
+        }
+
+
+        if (!name) {
+
+            showMemberMessage(
+                "Please enter member name.",
+                false
+            );
+
+            return;
+
+        }
+
+
+        if (!phone) {
+
+            showMemberMessage(
+                "Please enter member phone number.",
+                false
+            );
+
+            return;
+
+        }
+
+
+        if (!/^[0-9]{10}$/.test(phone)) {
+
+            showMemberMessage(
+                "Phone number must contain 10 digits.",
+                false
+            );
+
+            return;
+
+        }
+
+
+        if (
+            !editingMemberId &&
+            latestUsers &&
+            latestUsers[
+                memberId
+            ]
+        ) {
+
+            showMemberMessage(
+                "❌ This Member ID already exists.",
+                false
+            );
+
+            return;
+
+        }
+
+
+        const finalMemberId =
+            editingMemberId ||
+            memberId;
+
+
+        try {
+
+            const memberData = {
+
+                memberId:
+                    finalMemberId,
+
+                name:
+                    name,
+
+                phone:
+                    phone,
+
+                assignedBus:
+                    assignedBus,
+
+                status:
+                    status,
+
+                updatedAt:
+                    Date.now()
+
+            };
+
+
+            if (editingMemberId) {
+
+                await update(
+                    ref(
+                        database,
+                        "users/" +
+                        finalMemberId
+                    ),
+                    memberData
+                );
+
+
+                showMemberMessage(
+                    "✅ Member updated successfully."
+                );
+
+            }
+
+            else {
+
+                await set(
+                    ref(
+                        database,
+                        "users/" +
+                        finalMemberId
+                    ),
+                    memberData
+                );
+
+
+                showMemberMessage(
+                    "✅ Member added successfully."
+                );
+
+            }
+
+
+            clearMemberForm();
+
+        }
+
+        catch (error) {
+
+            console.error(
+                error
+            );
+
+            showMemberMessage(
+                "❌ Failed to save member.\n" +
+                error.message,
+                false
+            );
+
+        }
+
+    }
+);
+
+
+cancelMemberEditButton.addEventListener(
+    "click",
+    clearMemberForm
+);
+
+
+/* =====================================================
+   MEMBER TABLE
+===================================================== */
+
+function renderMemberTable(
+    users
+) {
+
+    memberTable.innerHTML =
+        "";
+
+
+    if (!users) {
+
+        memberTable.innerHTML = `
+            <tr>
+                <td colspan="6" class="empty">
+                    No members added yet.
+                </td>
+            </tr>
+        `;
+
+
+        document.getElementById(
+            "totalMembers"
+        ).innerText =
+            "0";
+
+        return;
+
+    }
+
+
+    const entries =
+        Object.entries(
+            users
+        );
+
+
+    entries.forEach(
+        ([id, user]) => {
+
+            const memberId =
+                user.memberId ||
+                id;
+
+            const status =
+                user.status ||
+                "ACTIVE";
+
+
+            const statusHTML =
+                status === "ACTIVE"
+                ? `
+                    <span class="member-status member-active">
+                        🟢 ACTIVE
+                    </span>
+                `
+                : `
+                    <span class="member-status member-inactive">
+                        ⚫ INACTIVE
+                    </span>
+                `;
+
+
+            const row =
+                document.createElement(
+                    "tr"
+                );
+
+
+            row.innerHTML = `
+
+                <td>
+                    👤
+                    <strong>
+                        ${memberId}
+                    </strong>
+                </td>
+
+                <td>
+                    ${user.name || "--"}
+                </td>
+
+                <td>
+                    📱 ${user.phone || "--"}
+                </td>
+
+                <td>
+                    🚍
+                    ${user.assignedBus || "No Bus"}
+                </td>
+
+                <td>
+                    ${statusHTML}
+                </td>
+
+                <td>
+
+                    <div class="action-buttons">
+
+                        <button
+                            class="edit-member-button edit-button"
+                            data-id="${id}"
+                        >
+                            ✏️ Edit
+                        </button>
+
+                        <button
+                            class="delete-member-button delete-button"
+                            data-id="${id}"
+                        >
+                            🗑️ Delete
+                        </button>
+
+                    </div>
+
+                </td>
+
+            `;
+
+
+            memberTable.appendChild(
+                row
+            );
+
+        }
+    );
+
+
+    document.getElementById(
+        "totalMembers"
+    ).innerText =
+        entries.length;
+
+
+    document
+        .querySelectorAll(
+            ".edit-member-button"
+        )
+        .forEach(
+            button => {
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        editMember(
+                            button.dataset.id,
+                            users
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+
+    document
+        .querySelectorAll(
+            ".delete-member-button"
+        )
+        .forEach(
+            button => {
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        deleteMember(
+                            button.dataset.id
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+}
+
+
+function editMember(
+    memberId,
+    users
+) {
+
+    const user =
+        users[
+            memberId
+        ];
+
+
+    if (!user) {
+        return;
+    }
+
+
+    memberIdInput.value =
+        user.memberId ||
+        memberId;
+
+    memberIdInput.disabled =
+        true;
+
+
+    memberNameInput.value =
+        user.name ||
+        "";
+
+    memberPhoneInput.value =
+        user.phone ||
+        "";
+
+    memberBus.value =
+        user.assignedBus ||
+        "";
+
+    memberStatus.value =
+        user.status ||
+        "ACTIVE";
+
+
+    editingMemberId =
+        memberId;
+
+
+    saveMemberButton.innerText =
+        "💾 Update Member";
+
+
+    cancelMemberEditButton.style.display =
+        "block";
+
+
+    memberNameInput.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+    });
+
+}
+
+
+async function deleteMember(
+    memberId
+) {
+
+    const user =
+        latestUsers
+        ? latestUsers[memberId]
+        : null;
+
+
+    const displayName =
+        user
+        ? (
+            user.name ||
+            user.memberId ||
+            memberId
+        )
+        : memberId;
+
+
+    if (
+        !confirm(
+            "Delete member " +
+            displayName +
+            "?\n\n" +
+            "This will remove the member record from Firebase."
+        )
+    ) {
+
+        return;
+
+    }
+
+
+    try {
+
+        await set(
+            ref(
+                database,
+                "users/" +
+                memberId
+            ),
+            null
+        );
+
+
+        showMemberMessage(
+            "✅ Member deleted successfully."
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            error
+        );
+
+        showMemberMessage(
+            "❌ Failed to delete member.\n" +
+            error.message,
+            false
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   REPAIR
+===================================================== */
+
+assignButton.addEventListener(
+    "click",
+    async () => {
+
+        const originalBus =
+            repairBus.value;
+
+        const replacement =
+            replacementBus.value;
+
+        const driver =
+            replacementDriver.value.trim();
+
+        const destination =
+            repairDestination.value.trim();
+
+
+        if (!originalBus) {
+
+            showMessage(
+                "Please select the bus under repair.",
+                false
+            );
+
+            return;
+
+        }
+
+
+        if (!replacement) {
+
+            showMessage(
+                "Please select a replacement bus.",
+                false
+            );
+
+            return;
+
+        }
+
+
+        if (!driver) {
+
+            showMessage(
+                "Please enter the replacement driver.",
+                false
+            );
+
+            return;
+
+        }
+
+
+        if (
+            originalBus ===
+            replacement
+        ) {
+
+            showMessage(
+                "Replacement bus must be different.",
+                false
+            );
+
+            return;
+
+        }
+
+
+        if (!destination) {
+
+            showMessage(
+                "Please enter the route or destination.",
+                false
+            );
+
+            return;
+
+        }
+
+
+        const noticeId =
+            originalBus.replace(
+                /[^a-zA-Z0-9]/g,
+                ""
+            );
+
+
+        try {
+
+            await update(
+                ref(
+                    database,
+                    "buses/" +
+                    originalBus
+                ),
+                {
+                    busNumber:
+                        originalBus,
+
+                    status:
+                        "REPAIR",
+
+                    driverName:
+                        "",
+
+                    destination:
+                        destination,
+
+                    replacementBus:
+                        replacement,
+
+                    updatedAt:
+                        Date.now()
+                }
+            );
+
+
+            await update(
+                ref(
+                    database,
+                    "buses/" +
+                    replacement
+                ),
+                {
+                    busNumber:
+                        replacement,
+
+                    status:
+                        "REPLACEMENT",
+
+                    driverName:
+                        driver,
+
+                    destination:
+                        destination,
+
+                    replacementFor:
+                        originalBus,
+
+                    updatedAt:
+                        Date.now()
+                }
+            );
+
+
+            await set(
+                ref(
+                    database,
+                    "repairNotices/" +
+                    noticeId
+                ),
+                {
+                    originalBus:
+                        originalBus,
+
+                    replacementBus:
+                        replacement,
+
+                    replacementDriver:
+                        driver,
+
+                    destination:
+                        destination,
+
+                    message:
+                        originalBus +
+                        " is under repair. " +
+                        replacement +
+                        " is operating the same route.",
+
+                    status:
+                        "ACTIVE",
+
+                    createdAt:
+                        Date.now()
+                }
+            );
+
+
+            showMessage(
+                "✅ Replacement assigned successfully."
+            );
+
+
+            repairBus.value =
+                "";
+
+            replacementBus.value =
+                "";
+
+            replacementDriver.value =
+                "";
+
+        }
+
+        catch (error) {
+
+            console.error(
+                error
+            );
+
+            showMessage(
+                "❌ Failed to save replacement.\n" +
+                error.message,
+                false
+            );
+
+        }
+
+    }
+);
+
+
+/* =====================================================
+   REPAIR NOTICES
+===================================================== */
+
+onValue(
+    repairsRef,
+    snapshot => {
+
+        const notices =
+            snapshot.val();
+
+
+        repairList.innerHTML =
+            "";
+
+
+        if (!notices) {
+
+            repairList.innerHTML = `
+                <div class="empty">
+                    No active repair notices.
+                </div>
+            `;
+
+            return;
+
+        }
+
+
+        let found =
+            false;
+
+
+        Object.entries(
+            notices
+        ).forEach(
+            ([id, notice]) => {
+
+                if (
+                    notice.status !==
+                    "ACTIVE"
+                ) {
+
+                    return;
+
+                }
+
+
+                found =
+                    true;
+
+
+                const card =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                card.className =
+                    "repair-card";
+
+
+                card.innerHTML = `
+
+                    🔧
+                    <strong>
+                        ${notice.originalBus}
+                    </strong>
+
+                    is under repair.
+
+                    <br><br>
+
+                    🚍 Replacement:
+
+                    <strong>
+                        ${notice.replacementBus}
+                    </strong>
+
+                    <br>
+
+                    👨‍✈️ Driver:
+                    ${notice.replacementDriver}
+
+                    <br>
+
+                    📍 Route:
+                    ${notice.destination}
+
+                    <br><br>
+
+                    <button
+                        class="restore-button"
+                        data-id="${id}"
+                    >
+                        ↩️ Close Repair Notice
+                    </button>
+
+                `;
+
+
+                repairList.appendChild(
+                    card
+                );
+
+            }
+        );
+
+
+        if (!found) {
+
+            repairList.innerHTML = `
+                <div class="empty">
+                    No active repair notices.
+                </div>
+            `;
+
+        }
+
+
+        document
+            .querySelectorAll(
+                ".restore-button"
+            )
+            .forEach(
+                button => {
+
+                    button.addEventListener(
+                        "click",
+                        () => {
+
+                            closeRepairNotice(
+                                button.dataset.id
+                            );
+
+                        }
+                    );
+
+                }
+            );
+
+    }
+);
+
+
+/* =====================================================
+   CLOSE REPAIR
+===================================================== */
+
+async function closeRepairNotice(
+    noticeId
+) {
+
+    try {
+
+        const noticeSnapshot =
+            await new Promise(
+                resolve => {
+
+                    onValue(
+                        ref(
+                            database,
+                            "repairNotices/" +
+                            noticeId
+                        ),
+                        resolve,
+                        {
+                            onlyOnce:
+                                true
+                        }
+                    );
+
+                }
+            );
+
+
+        const notice =
+            noticeSnapshot.val();
+
+
+        if (!notice) {
+
+            showMessage(
+                "Repair notice not found.",
+                false
+            );
+
+            return;
+
+        }
+
+
+        await update(
+            ref(
+                database,
+                "repairNotices/" +
+                noticeId
+            ),
+            {
+                status:
+                    "CLOSED",
+
+                closedAt:
+                    Date.now()
+            }
+        );
+
+
+        await update(
+            ref(
+                database,
+                "buses/" +
+                notice.originalBus
+            ),
+            {
+                busNumber:
+                    notice.originalBus,
+
+                status:
+                    "AVAILABLE",
+
+                driverName:
+                    "",
+
+                destination:
+                    notice.destination,
+
+                updatedAt:
+                    Date.now()
+            }
+        );
+
+
+        showMessage(
+            "✅ Repair notice closed."
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            error
+        );
+
+        showMessage(
+            "❌ Failed to close repair notice.",
+            false
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   BUS STATUS TABLE
+===================================================== */
+
+function renderBusStatusTable(
+    buses
+) {
+
+    const table =
+        document.getElementById(
+            "busTable"
+        );
+
+
+    table.innerHTML =
+        "";
+
+
+    if (!buses) {
+
+        table.innerHTML = `
+            <tr>
+                <td colspan="8" class="empty">
+                    No buses available
+                </td>
+            </tr>
+        `;
+
+
+        document.getElementById(
+            "totalBuses"
+        ).innerText =
+            "0";
+
+        document.getElementById(
+            "liveBuses"
+        ).innerText =
+            "0";
+
+        document.getElementById(
+            "completedTrips"
+        ).innerText =
+            "0";
+
+        document.getElementById(
+            "repairBuses"
+        ).innerText =
+            "0";
+
+        return;
+
+    }
+
+
+    const busList =
+        Object.values(
+            buses
+        );
+
+
+    let liveCount =
+        0;
+
+    let repairCount =
+        0;
+
+    let completedCount =
+        0;
+
+
+    Object.entries(
+        buses
+    ).forEach(
+        ([busNumber, bus]) => {
+
+            const status =
+                bus.status ||
+                "UNKNOWN";
+
+
+            if (
+                status === "LIVE"
+            ) {
+
+                liveCount++;
+
+            }
+
+
+            if (
+                status === "REPAIR"
+            ) {
+
+                repairCount++;
+
+            }
+
+
+            if (
+                status === "COMPLETED"
+            ) {
+
+                completedCount++;
+
+            }
+
+
+            const startTime =
+                bus.startTime
+                ? new Date(
+                    bus.startTime
+                ).toLocaleTimeString()
+                : "--";
+
+
+            const arrivalTime =
+                bus.arrivalTime
+                ? new Date(
+                    bus.arrivalTime
+                ).toLocaleTimeString()
+                : "--";
+
+
+            let duration =
+                "--";
+
+
+            if (
+                bus.durationSeconds !==
+                undefined &&
+                bus.durationSeconds !==
+                null
+            ) {
+
+                const totalSeconds =
+                    Number(
+                        bus.durationSeconds
+                    );
+
+
+                const minutes =
+                    Math.floor(
+                        totalSeconds / 60
+                    );
+
+
+                const seconds =
+                    totalSeconds % 60;
+
+
+                duration =
+                    minutes +
+                    " min " +
+                    seconds +
+                    " sec";
+
+            }
+
+
+            let statusHTML =
+                "⚪ " +
+                status;
+
+            let statusClass =
+                "offline";
+
+
+            if (
+                status === "LIVE"
+            ) {
+
+                statusHTML =
+                    "🟢 LIVE";
+
+                statusClass =
+                    "live";
+
+            }
+
+            else if (
+                status === "COMPLETED"
+            ) {
+
+                statusHTML =
+                    "✅ COMPLETED";
+
+                statusClass =
+                    "completed";
+
+            }
+
+            else if (
+                status === "REPAIR"
+            ) {
+
+                statusHTML =
+                    "🔧 REPAIR";
+
+                statusClass =
+                    "repair";
+
+            }
+
+            else if (
+                status === "REPLACEMENT"
+            ) {
+
+                statusHTML =
+                    "🚍 REPLACEMENT";
+
+                statusClass =
+                    "replacement";
+
+            }
+
+            else if (
+                status === "AVAILABLE"
+            ) {
+
+                statusHTML =
+                    "🟢 AVAILABLE";
+
+                statusClass =
+                    "available";
+
+            }
+
+
+            const row =
+                document.createElement(
+                    "tr"
+                );
+
+
+            row.innerHTML = `
+
+                <td>
+                    🚍
+                    <strong>
+                        ${bus.busNumber || busNumber}
+                    </strong>
+                </td>
+
+                <td>
+                    ${bus.driverName || "Unknown"}
+                </td>
+
+                <td>
+                    ${bus.destination || "Main Campus"}
+                </td>
+
+                <td class="time">
+                    🕐 ${startTime}
+                </td>
+
+                <td class="time">
+                    🏁 ${arrivalTime}
+                </td>
+
+                <td class="duration">
+                    ⏱️ ${duration}
+                </td>
+
+                <td class="${statusClass}">
+                    ${statusHTML}
+                </td>
+
+                <td>
+                    ${
+                        bus.updatedAt
+                        ? new Date(
+                            bus.updatedAt
+                          ).toLocaleTimeString()
+                        : "--"
+                    }
+                </td>
+
+            `;
+
+
+            table.appendChild(
+                row
+            );
+
+        }
+    );
+
+
+    document.getElementById(
+        "totalBuses"
+    ).innerText =
+        busList.length;
+
+
+    document.getElementById(
+        "liveBuses"
+    ).innerText =
+        liveCount;
+
+
+    document.getElementById(
+        "completedTrips"
+    ).innerText =
+        completedCount;
+
+
+    document.getElementById(
+        "repairBuses"
+    ).innerText =
+        repairCount;
+
+}
+
+
+/* =====================================================
+   TRIP HISTORY
+===================================================== */
+
+onValue(
+    tripHistoryRef,
+    snapshot => {
+
+        const trips =
+            snapshot.val();
+
+
+        const table =
+            document.getElementById(
+                "tripHistoryTable"
+            );
+
+
+        table.innerHTML =
+            "";
+
+
+        if (!trips) {
+
+            table.innerHTML = `
+                <tr>
+                    <td colspan="8" class="empty">
+                        No trip history available.
+                    </td>
+                </tr>
+            `;
+
+            return;
+
+        }
+
+
+        const tripEntries =
+            Object.entries(
+                trips
+            );
+
+
+        tripEntries.sort(
+            (a, b) => {
+
+                return (
+                    Number(
+                        b[1].createdAt || 0
+                    ) -
+                    Number(
+                        a[1].createdAt || 0
+                    )
+                );
+
+            }
+        );
+
+
+        tripEntries.forEach(
+            ([id, trip]) => {
+
+                const startTime =
+                    trip.startTime
+                    ? new Date(
+                        trip.startTime
+                    ).toLocaleString()
+                    : "--";
+
+
+                const arrivalTime =
+                    trip.arrivalTime
+                    ? new Date(
+                        trip.arrivalTime
+                    ).toLocaleString()
+                    : "--";
+
+
+                let duration =
+                    "--";
+
+
+                if (
+                    trip.durationSeconds !==
+                    undefined &&
+                    trip.durationSeconds !==
+                    null
+                ) {
+
+                    const totalSeconds =
+                        Number(
+                            trip.durationSeconds
+                        );
+
+
+                    const minutes =
+                        Math.floor(
+                            totalSeconds / 60
+                        );
+
+
+                    const seconds =
+                        totalSeconds % 60;
+
+
+                    duration =
+                        minutes +
+                        " min " +
+                        seconds +
+                        " sec";
+
+                }
+
+
+                const row =
+                    document.createElement(
+                        "tr"
+                    );
+
+
+                row.innerHTML = `
+
+                    <td>
+                        <strong>
+                            ${trip.tripId || id}
+                        </strong>
+                    </td>
+
+                    <td>
+                        🚍 ${trip.busNumber || "--"}
+                    </td>
+
+                    <td>
+                        👨‍✈️ ${trip.driverName || "--"}
+                    </td>
+
+                    <td>
+                        📍 ${trip.destination || "--"}
+                    </td>
+
+                    <td class="time">
+                        🕐 ${startTime}
+                    </td>
+
+                    <td class="time">
+                        🏁 ${arrivalTime}
+                    </td>
+
+                    <td class="duration">
+                        ⏱️ ${duration}
+                    </td>
+
+                    <td class="trip-status">
+                        ✅ ${trip.status || "COMPLETED"}
+                    </td>
+
+                `;
+
+
+                table.appendChild(
+                    row
+                );
+
+            }
+        );
+
+    }
+);
+
+
+/* =====================================================
+   INITIAL MAP START
+===================================================== */
+
+initializeAdminMap();
+
+</script>
+
+</body>
+
+</html>
